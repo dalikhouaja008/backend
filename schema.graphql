@@ -6,8 +6,20 @@ type User {
   id: ID!
   username: String!
   email: String!
+  password: String!
+  twoFactorSecret: String
+  publicKey: String
+  role: UserRole!
+  isVerified: Boolean!
   createdAt: DateTime!
   updatedAt: DateTime!
+}
+
+"""User role enumeration"""
+enum UserRole {
+  USER
+  ADMIN
+  MODERATOR
 }
 
 """
