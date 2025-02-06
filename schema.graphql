@@ -2,24 +2,60 @@
 # THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
 # ------------------------------------------------------
 
-type User {
-  id: ID!
-  username: String!
-  email: String!
-  password: String!
-  twoFactorSecret: String
-  publicKey: String
-  role: UserRole!
-  isVerified: Boolean!
-  createdAt: DateTime!
-  updatedAt: DateTime!
+type PermissionType {
+  resource: Resource!
+  actions: [Action!]!
 }
 
-"""User role enumeration"""
-enum UserRole {
-  USER
-  ADMIN
-  MODERATOR
+"""Type de ressource disponible"""
+enum Resource {
+  settings
+  products
+  users
+}
+
+"""Type de permission"""
+enum Action {
+  read
+  create
+  update
+  delete
+}
+
+type RoleType {
+  name: String!
+  permissions: [PermissionType!]!
+}
+
+type User {
+  _id: ID!
+
+  """Nom d'utilisateur"""
+  username: String!
+
+  """Adresse e-mail de l'utilisateur"""
+  email: String!
+
+  """Mot de passe de l'utilisateur"""
+  password: String!
+
+  """Secret pour l'authentification à deux facteurs"""
+  twoFactorSecret: String
+
+  """Clé publique de la wallet de l'utilisateur"""
+  publicKey: String
+
+  """ID du rôle de l'utilisateur"""
+  roleId: ID
+
+  """Indique si l'utilisateur est vérifié"""
+  isVerified: Boolean!
+
+  """Date de création du compte"""
+  createdAt: DateTime!
+
+  """Date de mise à jour du compte"""
+  updatedAt: DateTime!
 }
 
 """
@@ -28,22 +64,78 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 scalar DateTime
 
 type Query {
-  authentication(id: Int!): User!
+  validateUser(userId: String!): User!
 }
 
 type Mutation {
-  createAuthentication(createAuthenticationInput: CreateAuthenticationInput!): User!
-  updateAuthentication(updateAuthenticationInput: UpdateAuthenticationInput!): User!
-  removeAuthentication(id: Int!): User!
+  signUp(signupData: UserInput!): User!
+  login(credentials: LoginInput!): User!
+  refreshTokens(refreshTokenData: RefreshTokenInput!): String!
+  changePassword(changePasswordData: ChangePasswordInput!): String!
+  forgotPassword(forgotPasswordData: ForgotPasswordInput!): String!
+  requestReset(email: String!): String!
+  verifyCode(email: String!, code: String!): String!
+  resetPassword(resetPasswordData: ResetPasswordInput!): User!
+  create(input: CreateRoleDtoInput!): RoleType!
 }
 
-input CreateAuthenticationInput {
-  """Example field (placeholder)"""
-  exampleField: Int!
+input UserInput {
+  """Nom d'utilisateur"""
+  username: String!
+
+  """Adresse e-mail de l'utilisateur"""
+  email: String!
+
+  """Mot de passe de l'utilisateur"""
+  password: String!
+
+  """Rôle de l'utilisateur (par exemple, 'user', 'admin')"""
+  role: String
+
+  """Clé publique de la wallet de l'utilisateur"""
+  publicKey: String
+
+  """Secret pour l'authentification à deux facteurs"""
+  twoFactorSecret: String
+
+  """ID du rôle de l'utilisateur"""
+  roleId: String
+
+  """Indique si l'utilisateur est vérifié"""
+  isVerified: Boolean! = false
 }
 
-input UpdateAuthenticationInput {
-  """Example field (placeholder)"""
-  exampleField: Int
-  id: Int!
+input LoginInput {
+  email: String!
+  password: String!
+}
+
+input RefreshTokenInput {
+  refreshToken: String!
+}
+
+input ChangePasswordInput {
+  userId: String!
+  oldPassword: String!
+  newPassword: String!
+}
+
+input ForgotPasswordInput {
+  email: String!
+}
+
+input ResetPasswordInput {
+  email: String!
+  code: String!
+  newPassword: String!
+}
+
+input CreateRoleDtoInput {
+  name: String!
+  permissions: [PermissionInput!]!
+}
+
+input PermissionInput {
+  resource: Resource!
+  actions: [Action!]!
 }
