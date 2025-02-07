@@ -25,19 +25,12 @@ export class UserInput {
 
   @Field(() => String, {
     description: "Secret pour l'authentification à deux facteurs",
-        nullable: true, // Optionnel
+    nullable: true, // Optionnel
   })
   twoFactorSecret?: string;
 
-  @Field(() => String, {
-    description: "ID du rôle de l'utilisateur",
-    nullable: true, // Optionnel
-  })
-  roleId?: string;
-
   @Field(() => Boolean, {
     description: "Indique si l'utilisateur est vérifié",
-
     defaultValue: false, // Valeur par défaut
   })
   isVerified?: boolean;

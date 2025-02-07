@@ -9,6 +9,7 @@ import { AuthenticationService } from './authentication.service';
 import { UserInput } from './dto/signup.input';
 import { AuthenticationGuard } from 'src/guards/authentication.guard';
 import { User } from './schema/user.schema';
+import { LoginResponse } from './responses/login.response';
 
 @Resolver(() => User)
 export class AuthenticationResolver {
@@ -20,8 +21,7 @@ export class AuthenticationResolver {
     return this.authService.signup(signupData);
   }
 
-  // Mutation pour la connexion (login)
-  @Mutation(() => User)
+  @Mutation(() => LoginResponse)
   async login(@Args('credentials') credentials: LoginInput) {
     return this.authService.login(credentials);
   }

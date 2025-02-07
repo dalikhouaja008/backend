@@ -45,8 +45,8 @@ type User {
   """Clé publique de la wallet de l'utilisateur"""
   publicKey: String
 
-  """ID du rôle de l'utilisateur"""
-  roleId: ID
+  """Rôle de l'utilisateur (par exemple, 'user', 'admin')"""
+  role: String
 
   """Indique si l'utilisateur est vérifié"""
   isVerified: Boolean!
@@ -63,13 +63,24 @@ A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date
 """
 scalar DateTime
 
+type LoginResponse {
+  """JWT Access Token"""
+  accessToken: String!
+
+  """JWT Refresh Token"""
+  refreshToken: String!
+
+  """Informations de l'utilisateur"""
+  user: User!
+}
+
 type Query {
   validateUser(userId: String!): User!
 }
 
 type Mutation {
   signUp(signupData: UserInput!): User!
-  login(credentials: LoginInput!): User!
+  login(credentials: LoginInput!): LoginResponse!
   refreshTokens(refreshTokenData: RefreshTokenInput!): String!
   changePassword(changePasswordData: ChangePasswordInput!): String!
   forgotPassword(forgotPasswordData: ForgotPasswordInput!): String!
@@ -98,15 +109,15 @@ input UserInput {
   """Secret pour l'authentification à deux facteurs"""
   twoFactorSecret: String
 
-  """ID du rôle de l'utilisateur"""
-  roleId: String
-
   """Indique si l'utilisateur est vérifié"""
   isVerified: Boolean! = false
 }
 
 input LoginInput {
+  """Adresse e-mail de l'utilisateur"""
   email: String!
+
+  """Mot de passe de l'utilisateur"""
   password: String!
 }
 

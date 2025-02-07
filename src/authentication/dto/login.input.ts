@@ -1,11 +1,10 @@
 import { InputType, Field } from '@nestjs/graphql';
 
-// Define el tipo LoginDto como un InputType (para inputs)
 @InputType()
 export class LoginInput {
-    @Field()
-    email: string;
+  @Field(() => String, { description: "Adresse e-mail de l'utilisateur" })
+  email: string;
 
-    @Field()
-    password: string;
+  @Field(() => String, { description: "Mot de passe de l'utilisateur" })
+  password: string;
 }

@@ -32,49 +32,53 @@ export class AuthenticationService {
   ) {}
 
   async signup(signupData: UserInput) {
-    const { email, username, password, publicKey, twoFactorSecret, roleId, isVerified } = signupData;
-
+    const { email, username, password, publicKey, twoFactorSecret, role, isVerified } = signupData;
+  
     // Vérifier si l'email est déjà utilisé
     const emailInUse = await this.UserModel.findOne({ email });
     if (emailInUse) {
       throw new BadRequestException('Email already in use');
     }
-
+  
     // Hasher le mot de passe
     const hashedPassword = await bcrypt.hash(password, 10);
-
+  
     // Créer l'utilisateur avec les champs fournis
     const newUser = await this.UserModel.create({
-      username, // Utilisez `username` au lieu de `name`
+      username,
       email,
       password: hashedPassword,
       publicKey: publicKey || null, // Optionnel
       twoFactorSecret: twoFactorSecret || null, // Optionnel
-      roleId: roleId || null, // Optionnel
+      role: role || 'user', // Utilisez 'user' comme valeur par défaut si role n'est pas fourni
       isVerified: isVerified || false, // Optionnel, valeur par défaut
     });
-
+  
     return newUser;
   }
 
   async login(credentials: LoginInput) {
     const { email, password } = credentials;
-    //Find if user exists by email
+  
+    // Trouver l'utilisateur par email
     const user = await this.UserModel.findOne({ email });
     if (!user) {
       throw new UnauthorizedException('Wrong credentials');
     }
-
-    //Compare entered password with existing password
+  
+    // Vérifier le mot de passe
     const passwordMatch = await bcrypt.compare(password, user.password);
     if (!passwordMatch) {
       throw new UnauthorizedException('Wrong credentials');
     }
-
-    //Generate JWT tokens
+  
+    // Générer les tokens
     const tokens = await this.generateUserTokens(user._id);
+  
+    // Retourner les tokens et les informations de l'utilisateur
     return {
-      ...tokens,
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
       user: user,
     };
   }
@@ -162,7 +166,7 @@ export class AuthenticationService {
 
     if (!user) throw new BadRequestException();
 
-    const role = await this.rolesService.getRoleById(user.roleId.toString());
+    const role = await this.rolesService.getRoleById(user.role);
     return role.permissions;
   }
 

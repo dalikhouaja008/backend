@@ -11,55 +11,55 @@ export enum UserRole {
 export type UserDocument = User & Document;
 
 @Schema({ timestamps: true })
-@ObjectType() // Décorateur GraphQL pour définir un type d'objet
+@ObjectType()
 export class User {
-  @Field(() => ID) // Décorateur GraphQL pour exposer le champ
+  @Field(() => ID)
   _id: Types.ObjectId;
 
   @Prop({ required: true, unique: true })
-  @Field(() => String, { description: "Nom d'utilisateur" }) // Décorateur GraphQL
+  @Field(() => String, { description: "Nom d'utilisateur" })
   username: string;
 
   @Prop({ required: true, unique: true })
-  @Field(() => String, { description: "Adresse e-mail de l'utilisateur" }) // Décorateur GraphQL
+  @Field(() => String, { description: "Adresse e-mail de l'utilisateur" })
   email: string;
 
   @Prop({ required: true })
-  @Field(() => String, { description: "Mot de passe de l'utilisateur" }) // Décorateur GraphQL
+  @Field(() => String, { description: "Mot de passe de l'utilisateur" })
   password: string;
 
   @Prop()
   @Field(() => String, {
     description: "Secret pour l'authentification à deux facteurs",
-    nullable: true, // Optionnel
+    nullable: true,
   })
   twoFactorSecret?: string;
 
   @Prop()
   @Field(() => String, {
     description: "Clé publique de la wallet de l'utilisateur",
-    nullable: true, // Optionnel
+    nullable: true,
   })
   publicKey?: string;
 
-  @Prop({ required: false, type: SchemaTypes.ObjectId })
-  @Field(() => ID, {
-    description: "ID du rôle de l'utilisateur",
-    nullable: true, // Optionnel
+  @Prop({ type: String, enum: UserRole, default: UserRole.USER }) // Utilisez l'enum UserRole
+  @Field(() => String, {
+    description: "Rôle de l'utilisateur (par exemple, 'user', 'admin')",
+    nullable: true,
   })
-  roleId?: Types.ObjectId;
+  role?: string; 
 
   @Prop({ default: false })
   @Field(() => Boolean, {
     description: "Indique si l'utilisateur est vérifié",
-    defaultValue: false, // Valeur par défaut
+    defaultValue: false,
   })
   isVerified: boolean;
 
-  @Field(() => Date, { description: 'Date de création du compte' }) // Décorateur GraphQL
+  @Field(() => Date, { description: 'Date de création du compte' })
   createdAt: Date;
 
-  @Field(() => Date, { description: 'Date de mise à jour du compte' }) // Décorateur GraphQL
+  @Field(() => Date, { description: 'Date de mise à jour du compte' })
   updatedAt: Date;
 }
 
