@@ -64,20 +64,6 @@ export class AuthenticationResolver {
     }
   }
 
-  @UseGuards(AuthenticationGuard)
-  @Mutation(() => String)
-  async enableTwoFactorAuth(@Args('userId') userId: string) {
-    const secret = this.twoFactorAuthService.generateSecret();
-    // Sauvegarder le secret dans la base de données pour l'utilisateur
-    await this.UserModel.findByIdAndUpdate(userId, {
-      twoFactorSecret: secret.secret,
-    });
-
-    // Générer un QR code pour l'utilisateur
-    const qrCodeUrl = await this.twoFactorAuthService.generateQRCode(secret.otpauthUrl);
-    return qrCodeUrl;
-  }
-
   // Mutation pour rafraîchir les tokens
   @Mutation(() => String)
   async refreshTokens(@Args('refreshTokenData') refreshTokenData: RefreshTokenInput) {

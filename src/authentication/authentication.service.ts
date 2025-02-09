@@ -8,7 +8,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { v4 as uuidv4 } from 'uuid';
-import { nanoid } from 'nanoid/non-secure'; // Utilise la version CommonJS
+import { nanoid } from 'nanoid/non-secure';
 import { MailService } from 'src/services/mail.service';
 import { RolesService } from 'src/roles/roles.service';
 import { ResetToken } from './schema/resetToken.schema';

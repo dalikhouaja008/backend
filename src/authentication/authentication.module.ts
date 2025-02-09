@@ -14,6 +14,7 @@ import { MailService } from 'src/services/mail.service';
 import { JwtStrategy } from './jwt.strategy';
 import { JwtAuthGuard } from 'src/guards/jwtAuth.guards';
 import { MailerModule } from '@nestjs-modules/mailer';
+import { TwoFactorAuthService } from './TwoFactorAuth.service';
 
 @Module({
   imports: [
@@ -56,7 +57,7 @@ import { MailerModule } from '@nestjs-modules/mailer';
       },
     }),
   ],
-  providers: [ MailService,JwtStrategy, JwtAuthGuard, AuthenticationService,AuthenticationResolver],
-  exports: [AuthenticationService,PassportModule,JwtModule, JwtStrategy, JwtAuthGuard],
+  providers: [ MailService,JwtStrategy, JwtAuthGuard, AuthenticationService,AuthenticationResolver,TwoFactorAuthService],
+  exports: [AuthenticationService,PassportModule,JwtModule, JwtStrategy, JwtAuthGuard,TwoFactorAuthService],
 })
 export class AuthenticationModule {}
