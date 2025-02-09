@@ -68,16 +68,19 @@ scalar DateTime
 
 type LoginResponse {
   """JWT Access Token"""
-  accessToken: String!
+  accessToken: String
 
   """JWT Refresh Token"""
-  refreshToken: String!
+  refreshToken: String
 
   """Indique si la 2FA est requise"""
   requiresTwoFactor: Boolean!
 
+  """token générer lors de la validation 2FA"""
+  tempToken: String
+
   """Informations de l'utilisateur"""
-  user: User!
+  user: User
 }
 
 type Query {

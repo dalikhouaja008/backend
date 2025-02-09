@@ -15,9 +15,10 @@ import { ResetToken } from './schema/resetToken.schema';
 import { RefreshToken } from './schema/refreshToken.schema';
 import { User } from './schema/user.schema';
 import { UserInput } from './dto/signup.input';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { LoginInput } from './dto/login.input';
 import { TwoFactorAuthService } from './TwoFactorAuth.service';
+import { LoginResponse } from './responses/login.response';
 
 @Injectable()
 export class AuthenticationService {
@@ -59,46 +60,48 @@ export class AuthenticationService {
     return newUser;
   }
 
-  async login(credentials: LoginInput) {
+  async login(credentials: LoginInput): Promise<LoginResponse> {
     const { email, password } = credentials;
 
-    console.log('Login attempt for email:', email);
-
-    // Trouver l'utilisateur par email
     const user = await this.UserModel.findOne({ email });
     if (!user) {
-      console.log('User not found with email:', email);
       throw new UnauthorizedException('Wrong credentials');
     }
 
-    console.log('User found:', user.email);
-
-    // Vérifier le mot de passe
     const passwordMatch = await bcrypt.compare(password, user.password);
-    console.log('Password match:', passwordMatch);
-
     if (!passwordMatch) {
       throw new UnauthorizedException('Wrong credentials');
     }
 
-    // Si la 2FA est activée, retourner un indicateur pour demander le code OTP
+    // Si 2FA est activé
     if (user.isTwoFactorEnabled) {
+      // Générer un token temporaire pour la vérification 2FA
+      const tempToken = this.jwtService.sign(
+        { 
+          userId: user._id,
+          isTwoFactorAuthenticated: false,
+          isTemp: true 
+        },
+        { expiresIn: '5m' } // Token temporaire valide 5 minutes
+      );
+
       return {
         requiresTwoFactor: true,
-        user: user,
+        tempToken,
+        user,
+        accessToken: null,
+        refreshToken: null
       };
     }
 
-
-    // Générer les tokens
-    const tokens = await this.generateUserTokens(user._id);
-    console.log('Tokens generated successfully');
-
-    // Retourner les tokens et les informations de l'utilisateur
+    // Si pas de 2FA, générer les tokens normaux
+    const tokens = await this.generateUserTokens(user._id, true);
     return {
+      requiresTwoFactor: false,
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
-      user: user,
+      user,
+      tempToken: null
     };
   }
 
@@ -153,20 +156,32 @@ export class AuthenticationService {
     if (!token) {
       throw new UnauthorizedException('Refresh Token is invalid');
     }
-    return this.generateUserTokens(token.userId);
+    return this.generateUserTokens(token.userId.toString(),false);
   }
-  async generateUserTokens(userId) {
-    const accessToken = this.jwtService.sign({ userId }, { expiresIn: '10h' });
-    const refreshToken = uuidv4();
+  async generateUserTokens(userId: string | Types.ObjectId, isTwoFactorAuthenticated = false) {
+    const user = await this.UserModel.findById(userId);
+    
+    const payload = {
+      userId: user._id,
+      email: user.email,
+      isTwoFactorAuthenticated,
+    };
 
+    const accessToken = this.jwtService.sign(payload, { 
+      expiresIn: '10h',
+      secret: process.env.JWT_SECRET 
+    });
+
+    const refreshToken = uuidv4();
     await this.storeRefreshToken(refreshToken, userId);
+
     return {
       accessToken,
       refreshToken,
     };
   }
 
-  async storeRefreshToken(token: string, userId: string) {
+  async storeRefreshToken(token: string, userId: string | Types.ObjectId) {
     // Calculate expiry date 3 days from now
     const expiryDate = new Date();
     expiryDate.setDate(expiryDate.getDate() + 3);
@@ -296,7 +311,6 @@ export class AuthenticationService {
   }
 
   //2FA authentication
-
   // Trouver un utilisateur par ID
   async findUserById(userId: string): Promise<User | null> {
     return this.UserModel.findById(userId).exec();
@@ -351,6 +365,25 @@ export class AuthenticationService {
       },
       { new: true }
     ).exec();
+  }
+
+  async verifyTwoFactorToken(userId: string, token: string) {
+    const user = await this.UserModel.findById(userId);
+    if (!user || !user.twoFactorSecret) {
+      throw new UnauthorizedException('Utilisateur non trouvé ou 2FA non activé');
+    }
+
+    const isValid = this.twoFactorAuthService.validateToken(
+      user.twoFactorSecret, 
+      token
+    );
+
+    if (!isValid) {
+      throw new UnauthorizedException('Code 2FA invalide');
+    }
+
+    // Générer un nouveau token avec 2FA validé
+    return this.generateUserTokens(userId, true);
   }
 
 }
