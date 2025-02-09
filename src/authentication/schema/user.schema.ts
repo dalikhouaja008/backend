@@ -35,6 +35,13 @@ export class User {
   })
   twoFactorSecret?: string;
 
+  @Prop({ default: false })
+  @Field(() => Boolean, {
+    description: "Indique si l'utilisateur a activé l'authentification à deux facteurs",
+    defaultValue: false,
+  })
+  isTwoFactorEnabled: boolean;
+
   @Prop()
   @Field(() => String, {
     description: "Clé publique de la wallet de l'utilisateur",
@@ -47,7 +54,7 @@ export class User {
     description: "Rôle de l'utilisateur (par exemple, 'user', 'admin')",
     nullable: true,
   })
-  role?: string; 
+  role?: string;
 
   @Prop({ default: false })
   @Field(() => Boolean, {

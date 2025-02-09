@@ -42,6 +42,9 @@ type User {
   """Secret pour l'authentification à deux facteurs"""
   twoFactorSecret: String
 
+  """Indique si l'utilisateur a activé l'authentification à deux facteurs"""
+  isTwoFactorEnabled: Boolean!
+
   """Clé publique de la wallet de l'utilisateur"""
   publicKey: String
 
@@ -70,6 +73,9 @@ type LoginResponse {
   """JWT Refresh Token"""
   refreshToken: String!
 
+  """Indique si la 2FA est requise"""
+  requiresTwoFactor: Boolean!
+
   """Informations de l'utilisateur"""
   user: User!
 }
@@ -87,6 +93,9 @@ type Mutation {
   requestReset(email: String!): String!
   verifyCode(email: String!, code: String!): String!
   resetPassword(resetPasswordData: ResetPasswordInput!): User!
+  enableTwoFactorAuth(userId: String!): String!
+  verifyTwoFactorAuth(userId: String!, token: String!): Boolean!
+  verifyTwoFactorLogin(userId: String!, token: String!): LoginResponse!
   create(input: CreateRoleDtoInput!): RoleType!
 }
 
