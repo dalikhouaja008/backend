@@ -1,4 +1,4 @@
-import { UseGuards } from '@nestjs/common';
+import { BadRequestException, UseGuards } from '@nestjs/common';
 import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { LoginInput } from './dto/login.input';
 import { RefreshTokenInput } from './dto/refreshToken.input';
@@ -10,10 +10,14 @@ import { UserInput } from './dto/signup.input';
 import { AuthenticationGuard } from 'src/guards/authentication.guard';
 import { User } from './schema/user.schema';
 import { LoginResponse } from './responses/login.response';
+import { TwoFactorAuthService } from './TwoFactorAuth.service';
 
 @Resolver(() => User)
 export class AuthenticationResolver {
-  constructor(private readonly authService: AuthenticationService) {}
+  constructor(
+    private readonly authService: AuthenticationService,
+    private readonly twoFactorAuthService: TwoFactorAuthService,
+    ) {}
 
   // Mutation pour l'inscription (signup)
   @Mutation(() => User)
@@ -23,7 +27,55 @@ export class AuthenticationResolver {
 
   @Mutation(() => LoginResponse)
   async login(@Args('credentials') credentials: LoginInput) {
-    return this.authService.login(credentials);
+    // Debug: Afficher les données reçues
+    console.log('=== Debug Login Mutation ===');
+    console.log('1. Credentials reçues:', JSON.stringify(credentials, null, 2));
+    console.log('2. Type de credentials:', typeof credentials);
+    
+    // Vérification des propriétés
+    const hasEmail = 'email' in credentials;
+    const hasPassword = 'password' in credentials;
+    
+    console.log('3. Présence des propriétés:');
+    console.log('   - email présent:', hasEmail);
+    console.log('   - password présent:', hasPassword);
+    
+    // Vérification des valeurs
+    console.log('4. Valeurs:');
+    console.log('   - email:', credentials?.email);
+    console.log('   - password:', credentials?.password);
+    
+    // Validation explicite
+    if (!hasEmail || !hasPassword) {
+      console.log('5. Erreur: Données manquantes');
+      throw new BadRequestException(
+        `Données invalides. Email: ${hasEmail}, Password: ${hasPassword}`
+      );
+    }
+
+    try {
+      console.log('6. Tentative de login...');
+      const result = await this.authService.login(credentials);
+      console.log('7. Login réussi');
+      return result;
+    } catch (error) {
+      console.log('8. Erreur durant le login:', error.message);
+      throw error;
+    }
+  }
+
+  @UseGuards(AuthenticationGuard)
+  @Mutation(() => String)
+  async enableTwoFactorAuth(@Args('userId') userId: string) {
+    const secret = this.twoFactorAuthService.generateSecret();
+    // Sauvegarder le secret dans la base de données pour l'utilisateur
+    await this.UserModel.findByIdAndUpdate(userId, {
+      twoFactorSecret: secret.secret,
+    });
+
+    // Générer un QR code pour l'utilisateur
+    const qrCodeUrl = await this.twoFactorAuthService.generateQRCode(secret.otpauthUrl);
+    return qrCodeUrl;
   }
 
   // Mutation pour rafraîchir les tokens

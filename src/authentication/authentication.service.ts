@@ -60,20 +60,28 @@ export class AuthenticationService {
   async login(credentials: LoginInput) {
     const { email, password } = credentials;
   
+    console.log('Login attempt for email:', email);
+  
     // Trouver l'utilisateur par email
     const user = await this.UserModel.findOne({ email });
     if (!user) {
+      console.log('User not found with email:', email);
       throw new UnauthorizedException('Wrong credentials');
     }
   
+    console.log('User found:', user.email);
+  
     // Vérifier le mot de passe
     const passwordMatch = await bcrypt.compare(password, user.password);
+    console.log('Password match:', passwordMatch);
+    
     if (!passwordMatch) {
       throw new UnauthorizedException('Wrong credentials');
     }
   
     // Générer les tokens
     const tokens = await this.generateUserTokens(user._id);
+    console.log('Tokens generated successfully');
   
     // Retourner les tokens et les informations de l'utilisateur
     return {

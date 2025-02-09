@@ -1,46 +1,44 @@
-import { ObjectType, Field, ID, registerEnumType } from '@nestjs/graphql';
+import { ObjectType, Field, ID } from '@nestjs/graphql';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document, SchemaTypes, Types } from 'mongoose';
 
-export enum UserRole {
-  USER = 'user',
-  ADMIN = 'admin',
-  MODERATOR = 'moderator',
-}
-
-// Register the enum with GraphQL
-registerEnumType(UserRole, {
-  name: 'UserRole', // This is the name that will be used in the GraphQL schema
-  description: 'User role enumeration', // Optional description
-});
-
+@Schema({ timestamps: true })
 @ObjectType()
 export class User {
   @Field(() => ID)
-  id: number;
+  _id: Types.ObjectId;
 
-  @Field()
+  @Prop({ required: true, unique: true })
+  @Field(() => String, { description: "Nom d'utilisateur" })
   username: string;
 
-  @Field()
+  @Prop({ required: true, unique: true })
+  @Field(() => String, { description: "Adresse e-mail de l'utilisateur" })
   email: string;
 
-  @Field()
+  @Prop({ required: true })
+  @Field(() => String, { description: "Mot de passe de l'utilisateur" })
   password: string;
 
-  @Field({ nullable: true })
+  @Prop()
+  @Field(() => String, {
+    description: "Secret pour l'authentification à deux facteurs",
+    nullable: true,
+  })
   twoFactorSecret?: string;
 
-  @Field({ nullable: true })
-  publicKey?: string;
+  @Prop({ default: false })
+  @Field(() => Boolean, {
+    description: "Indique si l'utilisateur a activé la 2FA",
+    defaultValue: false,
+  })
+  isTwoFactorEnabled: boolean;
 
-  @Field(() => UserRole)
-  role: UserRole;
-
-  @Field()
-  isVerified: boolean;
-
-  @Field(() => Date)
+  @Field(() => Date, { description: 'Date de création du compte' })
   createdAt: Date;
 
-  @Field(() => Date)
+  @Field(() => Date, { description: 'Date de mise à jour du compte' })
   updatedAt: Date;
 }
+
+export const UserSchema = SchemaFactory.createForClass(User);
