@@ -15,7 +15,11 @@ export class TwoFactorAuthService {
 
   // Générer un QR code pour l'utilisateur
   async generateQRCode(otpauthUrl: string): Promise<string> {
-    return QRCode.toDataURL(otpauthUrl);
+    try {
+      return await QRCode.toDataURL(otpauthUrl);
+    } catch (error) {
+      throw new Error('Erreur lors de la génération du QR code');
+    }
   }
 
   // Valider le code OTP fourni par l'utilisateur
@@ -24,6 +28,7 @@ export class TwoFactorAuthService {
       secret,
       encoding: 'base32',
       token,
+      window: 1 // Permet une tolérance d'une période (30 secondes)
     });
   }
 }

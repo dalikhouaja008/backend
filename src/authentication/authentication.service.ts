@@ -17,6 +17,7 @@ import { User } from './schema/user.schema';
 import { UserInput } from './dto/signup.input';
 import { Model } from 'mongoose';
 import { LoginInput } from './dto/login.input';
+import { TwoFactorAuthService } from './TwoFactorAuth.service';
 
 @Injectable()
 export class AuthenticationService {
@@ -29,20 +30,21 @@ export class AuthenticationService {
     private jwtService: JwtService,
     private mailService: MailService,
     private rolesService: RolesService,
-  ) {}
+    private twoFactorAuthService: TwoFactorAuthService,
+  ) { }
 
   async signup(signupData: UserInput) {
     const { email, username, password, publicKey, twoFactorSecret, role, isVerified } = signupData;
-  
+
     // Vérifier si l'email est déjà utilisé
     const emailInUse = await this.UserModel.findOne({ email });
     if (emailInUse) {
       throw new BadRequestException('Email already in use');
     }
-  
+
     // Hasher le mot de passe
     const hashedPassword = await bcrypt.hash(password, 10);
-  
+
     // Créer l'utilisateur avec les champs fournis
     const newUser = await this.UserModel.create({
       username,
@@ -53,36 +55,45 @@ export class AuthenticationService {
       role: role || 'user', // Utilisez 'user' comme valeur par défaut si role n'est pas fourni
       isVerified: isVerified || false, // Optionnel, valeur par défaut
     });
-  
+
     return newUser;
   }
 
   async login(credentials: LoginInput) {
     const { email, password } = credentials;
-  
+
     console.log('Login attempt for email:', email);
-  
+
     // Trouver l'utilisateur par email
     const user = await this.UserModel.findOne({ email });
     if (!user) {
       console.log('User not found with email:', email);
       throw new UnauthorizedException('Wrong credentials');
     }
-  
+
     console.log('User found:', user.email);
-  
+
     // Vérifier le mot de passe
     const passwordMatch = await bcrypt.compare(password, user.password);
     console.log('Password match:', passwordMatch);
-    
+
     if (!passwordMatch) {
       throw new UnauthorizedException('Wrong credentials');
     }
-  
+
+    // Si la 2FA est activée, retourner un indicateur pour demander le code OTP
+    if (user.isTwoFactorEnabled) {
+      return {
+        requiresTwoFactor: true,
+        user: user,
+      };
+    }
+
+
     // Générer les tokens
     const tokens = await this.generateUserTokens(user._id);
     console.log('Tokens generated successfully');
-  
+
     // Retourner les tokens et les informations de l'utilisateur
     return {
       accessToken: tokens.accessToken,
@@ -283,6 +294,45 @@ export class AuthenticationService {
     const user = await this.UserModel.findById(userId).exec();
     return user ? user : null;
   }
+
+  //2FA authentication
+
+  // Trouver un utilisateur par ID
+  async findUserById(userId: string): Promise<User | null> {
+    return this.UserModel.findById(userId).exec();
+  }
+
+  // Mettre à jour le secret 2FA d'un utilisateur
+  async updateUserTwoFactorSecret(userId: string, secret: string): Promise<User> {
+    return this.UserModel.findByIdAndUpdate(
+      userId,
+      { twoFactorSecret: secret },
+      { new: true },
+    ).exec();
+  }
+
+  // Activer la 2FA pour un utilisateur  
+  async enableTwoFactorAuth(userId: string): Promise<User> {
+    return this.UserModel.findByIdAndUpdate(
+      userId,
+      {
+        isTwoFactorEnabled: true
+      },
+      { new: true }
+    ).exec();
+  }
+
+  async disableTwoFactorAuth(userId: string): Promise<User> {
+    return this.UserModel.findByIdAndUpdate(
+      userId,
+      {
+        isTwoFactorEnabled: false,
+        twoFactorSecret: null
+      },
+      { new: true }
+    ).exec();
+  }
+
 }
 
 
@@ -294,5 +344,5 @@ export class AuthenticationService {
 
 
 
-  
+
 

@@ -19,6 +19,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
       autoSchemaFile: 'schema.graphql', // Sauvegarde le schéma dans un fichier
+      context: ({ req }) => ({ req }), // Ajoutez cette ligne pour inclure la requête dans le contexte
     }),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
