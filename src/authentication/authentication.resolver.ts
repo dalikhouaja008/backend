@@ -27,43 +27,21 @@ export class AuthenticationResolver {
 
   @Mutation(() => LoginResponse)
   async login(@Args('credentials') credentials: LoginInput) {
-    // Debug: Afficher les données reçues
-    console.log('=== Debug Login Mutation ===');
-    console.log('1. Credentials reçues:', JSON.stringify(credentials, null, 2));
-    console.log('2. Type de credentials:', typeof credentials);
-    
-    // Vérification des propriétés
-    const hasEmail = 'email' in credentials;
-    const hasPassword = 'password' in credentials;
-    
-    console.log('3. Présence des propriétés:');
-    console.log('   - email présent:', hasEmail);
-    console.log('   - password présent:', hasPassword);
-    
-    // Vérification des valeurs
-    console.log('4. Valeurs:');
-    console.log('   - email:', credentials?.email);
-    console.log('   - password:', credentials?.password);
-    
-    // Validation explicite
-    if (!hasEmail || !hasPassword) {
-      console.log('5. Erreur: Données manquantes');
-      throw new BadRequestException(
-        `Données invalides. Email: ${hasEmail}, Password: ${hasPassword}`
-      );
+    console.log('Credentials reçues:', credentials);
+    console.log('Type de credentials:', typeof credentials);
+    console.log('Présence des propriétés:');
+    console.log('- email présent:', 'email' in credentials);
+    console.log('- password présent:', 'password' in credentials);
+    console.log('Valeurs:');
+    console.log('- email:', credentials.email);
+    console.log('- password:', credentials.password);
+  
+    if (!credentials.email || !credentials.password) {
+      throw new BadRequestException('Données manquantes');
     }
-
-    try {
-      console.log('6. Tentative de login...');
-      const result = await this.authService.login(credentials);
-      console.log('7. Login réussi');
-      return result;
-    } catch (error) {
-      console.log('8. Erreur durant le login:', error.message);
-      throw error;
-    }
+  
+    return this.authService.login(credentials);
   }
-
   // Mutation pour rafraîchir les tokens
   @Mutation(() => String)
   async refreshTokens(@Args('refreshTokenData') refreshTokenData: RefreshTokenInput) {

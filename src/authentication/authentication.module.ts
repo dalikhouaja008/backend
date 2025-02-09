@@ -23,8 +23,10 @@ import { TwoFactorAuthService } from './TwoFactorAuth.service';
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
-        secret: configService.get('jwt.secret'),
-        signOptions: { expiresIn: '1h' },
+        secret: configService.get<string>('JWT_SECRET'),
+        signOptions: {
+          expiresIn: configService.get<string>('JWT_EXPIRATION', '10h'),
+        },
       }),
       inject: [ConfigService],
     }),
