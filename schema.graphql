@@ -93,9 +93,8 @@ type Mutation {
   requestReset(email: String!): String!
   verifyCode(email: String!, code: String!): String!
   resetPassword(resetPasswordData: ResetPasswordInput!): User!
-  enableTwoFactorAuth(userId: String!): String!
-  verifyTwoFactorAuth(userId: String!, token: String!): Boolean!
-  verifyTwoFactorLogin(userId: String!, token: String!): LoginResponse!
+  enableTwoFactorAuth: String!
+  verifyTwoFactorAuth(token: String!): Boolean!
   create(input: CreateRoleDtoInput!): RoleType!
 }
 
