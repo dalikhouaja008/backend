@@ -17,7 +17,7 @@ export class AuthenticationGuard extends AuthGuard('jwt') {
 
   constructor(private readonly jwtService: JwtService) {
     super();
-  } // Injectez ici le service JWT
+  } 
 
   getRequest(context: ExecutionContext) {
     const ctx = GqlExecutionContext.create(context);

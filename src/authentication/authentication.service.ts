@@ -304,13 +304,33 @@ export class AuthenticationService {
 
   // Mettre à jour le secret 2FA d'un utilisateur
   async updateUserTwoFactorSecret(userId: string, secret: string): Promise<User> {
-    return this.UserModel.findByIdAndUpdate(
-      userId,
-      { twoFactorSecret: secret },
-      { new: true },
-    ).exec();
+    console.log('Updating 2FA secret for user:', userId, 'Secret:', secret);
+    
+    try {
+      const updatedUser = await this.UserModel.findByIdAndUpdate(
+        userId,
+        { 
+          $set: { 
+            twoFactorSecret: secret 
+          }
+        },
+        { 
+          new: true,
+          runValidators: true
+        }
+      ).exec();
+  
+      if (!updatedUser) {
+        throw new NotFoundException(`User with ID ${userId} not found`);
+      }
+  
+      console.log('Updated user:', updatedUser);
+      return updatedUser;
+    } catch (error) {
+      console.error('Error updating 2FA secret:', error);
+      throw error;
+    }
   }
-
   // Activer la 2FA pour un utilisateur  
   async enableTwoFactorAuth(userId: string): Promise<User> {
     return this.UserModel.findByIdAndUpdate(

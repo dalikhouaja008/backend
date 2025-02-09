@@ -1,5 +1,5 @@
-import { BadRequestException, UnauthorizedException, UseGuards } from '@nestjs/common';
-import { Args, Mutation, Query, Resolver } from '@nestjs/graphql';
+import { BadRequestException, Request, UnauthorizedException, UseGuards } from '@nestjs/common';
+import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { LoginInput } from './dto/login.input';
 import { RefreshTokenInput } from './dto/refreshToken.input';
 import { ChangePasswordInput } from './dto/changePassword.input';
@@ -87,43 +87,76 @@ export class AuthenticationResolver {
   // Mutation pour activer la 2FA
   @UseGuards(AuthenticationGuard)
   @Mutation(() => String)
-  async enableTwoFactorAuth(@Args('userId') userId: string) {
+  async enableTwoFactorAuth(@Context() context) {
+    const req = context.req;
+    const user = req.user;
+  
+    console.log('User from context:', user); // Voyons la structure exacte
+  
+    if (!user) {
+      throw new UnauthorizedException('Utilisateur non authentifié');
+    }
+  
+    // L'ID peut être dans différentes propriétés selon votre implementation de AuthGuard
+    const userId = user.id || user._id || user.userId;
+    console.log('UserId extracted:', userId);
+  
+    if (!userId) {
+      throw new UnauthorizedException('ID utilisateur non trouvé');
+    }
+  
     // Générer un secret 2FA
     const secret = this.twoFactorAuthService.generateSecret();
-
-    // Mettre à jour l'utilisateur avec le secret 2FA
-    await this.authService.updateUserTwoFactorSecret(userId, secret.secret);
-
-    // Générer un QR code pour l'utilisateur
-    const qrCodeUrl = await this.twoFactorAuthService.generateQRCode(secret.otpauthUrl);
-    return qrCodeUrl;
+  
+    try {
+      // Mettre à jour l'utilisateur avec le secret 2FA
+      const updatedUser = await this.authService.updateUserTwoFactorSecret(userId, secret.secret);
+      console.log('Updated user:', updatedUser);
+  
+      // Générer un QR code pour l'utilisateur
+      const qrCodeUrl = await this.twoFactorAuthService.generateQRCode(secret.otpauthUrl);
+      return qrCodeUrl;
+    } catch (error) {
+      console.error('Error in enableTwoFactorAuth:', error);
+      throw new Error(`Erreur lors de l'activation de la 2FA: ${error.message}`);
+    }
   }
 
-    // Mutation pour valider le code OTP
-    @UseGuards(AuthenticationGuard)
-    @Mutation(() => Boolean)
-    async verifyTwoFactorAuth(
-      @Args('userId') userId: string,
-      @Args('token') token: string,
-    ) {
-      // Trouver l'utilisateur
-      const user = await this.authService.findUserById(userId);
-      if (!user || !user.twoFactorSecret) {
-        throw new Error('2FA non activée pour cet utilisateur');
-      }
-  
-      // Valider le code OTP
-      const isValid = this.twoFactorAuthService.validateToken(user.twoFactorSecret, token);
-      if (isValid) {
-        // Activer la 2FA pour l'utilisateur
-        await this.authService.enableTwoFactorAuth(userId);
-      }
-  
-      return isValid;
-    }
+  // Mutation pour valider le code OTP
+  @UseGuards(AuthenticationGuard)
+  @Mutation(() => Boolean)
+  async verifyTwoFactorAuth(
+    @Context() context: any, 
+    @Args('token') token: string,
+  ): Promise<boolean> {
+    const req = context.req; 
+    const userId = req.user.userId;
 
-     // Mutation pour valider le code OTP après la connexion
-  @Mutation(() => LoginResponse)
+    const user = await this.authService.findUserById(userId);
+  
+    if (!user) {
+      throw new UnauthorizedException('Utilisateur non authentifié');
+    }
+   //console.log(user);
+  
+    if (!user.twoFactorSecret) {
+      throw new Error('2FA non activée pour cet utilisateur');
+    }
+  
+    // Valider le code OTP
+    const isValid = this.twoFactorAuthService.validateToken(user.twoFactorSecret, token);
+  
+    if (isValid) {
+          // Activer la 2FA pour l'utilisateur
+          await this.authService.enableTwoFactorAuth(userId);
+        }
+  
+    return isValid;
+  }
+  
+
+  // Mutation pour valider le code OTP après la connexion
+ /* @Mutation(() => LoginResponse)
   async verifyTwoFactorLogin(
     @Args('userId') userId: string,
     @Args('token') token: string,
@@ -148,6 +181,6 @@ export class AuthenticationResolver {
       refreshToken: tokens.refreshToken,
       user: user,
     };
-  }
+  }*/
 
 }
