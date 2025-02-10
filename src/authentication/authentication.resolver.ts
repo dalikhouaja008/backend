@@ -122,7 +122,8 @@ export class AuthenticationResolver {
     }
   }
 
-  // Mutation pour valider le code OTP
+  // Mutation pour valider le code OTP 
+  //activation initiale de la 2FA 
   @UseGuards(AuthenticationGuard)
   @Mutation(() => Boolean)
   async verifyTwoFactorAuth(
@@ -156,16 +157,23 @@ export class AuthenticationResolver {
   
 
   // Mutation pour valider le code OTP après la connexion
- /* @Mutation(() => LoginResponse)
+  @UseGuards(AuthenticationGuard)
+  @Mutation(() => LoginResponse)
   async verifyTwoFactorLogin(
-    @Args('userId') userId: string,
+    @Context() context: any, 
     @Args('token') token: string,
   ) {
     // Trouver l'utilisateur
+    const req = context.req; 
+    const userId = req.user.userId;
+
     const user = await this.authService.findUserById(userId);
-    if (!user || !user.twoFactorSecret) {
-      throw new Error('2FA non activée pour cet utilisateur');
+  
+    if (!user) {
+      throw new UnauthorizedException('Utilisateur non authentifié');
     }
+   //console.log(user);
+  
 
     // Valider le code OTP
     const isValid = this.twoFactorAuthService.validateToken(user.twoFactorSecret, token);
@@ -181,6 +189,6 @@ export class AuthenticationResolver {
       refreshToken: tokens.refreshToken,
       user: user,
     };
-  }*/
+  }
 
 }

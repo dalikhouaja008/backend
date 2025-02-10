@@ -10,18 +10,25 @@ import { Request } from 'express';
 import { GqlExecutionContext } from '@nestjs/graphql';
 import { AuthGuard } from '@nestjs/passport';
 
+interface JWTPayload {
+  userId: string;
+  email?: string;
+  isTwoFactorAuthenticated?: boolean;
+  iat?: number;
+  exp?: number;
+}
+
 @Injectable()
 export class AuthenticationGuard extends AuthGuard('jwt') {
-
   private readonly logger = new Logger(AuthenticationGuard.name);
 
   constructor(private readonly jwtService: JwtService) {
     super();
-  } 
+  }
 
   getRequest(context: ExecutionContext) {
     const ctx = GqlExecutionContext.create(context);
-    return ctx.getContext().req; // Accédez à la requête via le contexte GraphQL
+    return ctx.getContext().req;
   }
 
   extractTokenFromHeader(request: Request): string | undefined {
@@ -34,23 +41,26 @@ export class AuthenticationGuard extends AuthGuard('jwt') {
     if (!request) {
       throw new UnauthorizedException('Requête non valide');
     }
-    
+
     const token = this.extractTokenFromHeader(request);
-    
     if (!token) {
       throw new UnauthorizedException('Token manquant');
     }
-    
+
     try {
-      // Vérifiez le token JWT ici
-      const payload = await this.jwtService.verifyAsync(token, {
-        secret: process.env.JWT_SECRET || 'secret key', // Utilisez une variable d'environnement pour la clé secrète si possible
+      const payload = await this.jwtService.verifyAsync<JWTPayload>(token, {
+        secret: process.env.JWT_SECRET || 'secret key',
       });
-      request.user = payload; // Ajoutez l'utilisateur à la requête
-      
+
+      // Vérifier si l'utilisateur nécessite une 2FA
+      if (payload.isTwoFactorAuthenticated === false && request.path !== '/verify-2fa') {
+        throw new UnauthorizedException('Authentification à deux facteurs requise');
+      }
+
+      request.user = payload;
       return true;
     } catch (error) {
-      this.logger.error(error); // Loggez les erreurs potentielles pour plus de visibilité sur les problèmes.
+      this.logger.error(`Erreur d'authentification: ${error.message}`);
       throw new UnauthorizedException('Token invalide');
     }
   }
