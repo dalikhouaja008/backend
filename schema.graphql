@@ -83,8 +83,28 @@ type LoginResponse {
   user: User
 }
 
+type Land {
+  _id: ID!
+  landId: String!
+  location: String!
+  size: Float!
+  type: String!
+  description: String
+  photos: [String!]
+  documents: [String!]
+  estimatedValue: Float!
+  tokenPrice: Float!
+  totalTokens: Float!
+  status: String!
+  expertReportId: String
+  marketplaceId: String
+  createdAt: DateTime!
+}
+
 type Query {
   validateUser(userId: String!): User!
+  lands: [Land!]!
+  land(id: String!): Land!
 }
 
 type Mutation {
@@ -98,7 +118,10 @@ type Mutation {
   resetPassword(resetPasswordData: ResetPasswordInput!): User!
   enableTwoFactorAuth: String!
   verifyTwoFactorAuth(token: String!): Boolean!
+  verifyTwoFactorLogin(token: String!): LoginResponse!
   create(input: CreateRoleDtoInput!): RoleType!
+  createLand(createLandInput: CreateLandInput!): Land!
+  deleteLand(id: String!): Boolean!
 }
 
 input UserInput {
@@ -157,4 +180,20 @@ input CreateRoleDtoInput {
 input PermissionInput {
   resource: Resource!
   actions: [Action!]!
+}
+
+input CreateLandInput {
+  landId: String!
+  location: String!
+  size: Float!
+  type: String!
+  description: String
+  photos: [String!]
+  documents: [String!]
+  estimatedValue: Float!
+  tokenPrice: Float!
+  totalTokens: Float!
+  status: String!
+  expertReportId: String
+  marketplaceId: String
 }

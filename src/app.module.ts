@@ -7,6 +7,7 @@ import config from './config/config';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RolesModule } from './roles/roles.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { LandModule } from './land/land.module';
 
 
 @Module({
@@ -31,6 +32,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     AuthenticationModule,
     RolesModule,
     ScheduleModule.forRoot(),
+    LandModule,
   ],
 })
 export class AppModule {}
