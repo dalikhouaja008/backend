@@ -7,6 +7,9 @@ import config from './config/config';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RolesModule } from './roles/roles.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { MailService } from './services/mail.service';
+
+
 
 
 @Module({
@@ -32,5 +35,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     RolesModule,
     ScheduleModule.forRoot(),
   ],
+  
+  providers: [MailService],
 })
 export class AppModule {}

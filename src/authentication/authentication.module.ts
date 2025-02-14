@@ -15,11 +15,11 @@ import { JwtStrategy } from './jwt.strategy';
 import { JwtAuthGuard } from 'src/guards/jwtAuth.guards';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { TwoFactorAuthService } from './TwoFactorAuth.service';
+import { TwilioService } from 'src/services/twilio.service'; // <-- Import the TwilioService
 
 @Module({
   imports: [
-    PassportModule.register({ defaultStrategy: 'jwt' }), 
-    PassportModule.register({ defaultStrategy: 'jwt' }), // Ajoutez cette ligne
+    PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
@@ -59,7 +59,7 @@ import { TwoFactorAuthService } from './TwoFactorAuth.service';
       },
     }),
   ],
-  providers: [ MailService,JwtStrategy, JwtAuthGuard, AuthenticationService,AuthenticationResolver,TwoFactorAuthService],
-  exports: [AuthenticationService,PassportModule,JwtModule, JwtStrategy, JwtAuthGuard,TwoFactorAuthService],
+  providers: [MailService, JwtStrategy, JwtAuthGuard, AuthenticationService, AuthenticationResolver, TwoFactorAuthService, TwilioService], // Add TwilioService here
+  exports: [AuthenticationService, PassportModule, JwtModule, JwtStrategy, JwtAuthGuard, TwoFactorAuthService, TwilioService], // Export it if needed in other modules
 })
 export class AuthenticationModule {}
