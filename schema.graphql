@@ -83,8 +83,62 @@ type LoginResponse {
   user: User
 }
 
+type AuthUser {
+  _id: ID!
+
+  """Nom d'utilisateur"""
+  username: String!
+
+  """Adresse e-mail de l'utilisateur"""
+  email: String!
+
+  """Mot de passe de l'utilisateur"""
+  password: String!
+
+  """Secret pour l'authentification à deux facteurs"""
+  twoFactorSecret: String
+
+  """Indique si l'utilisateur a activé la 2FA"""
+  isTwoFactorEnabled: Boolean!
+
+  """Date de création du compte"""
+  createdAt: DateTime!
+
+  """Date de mise à jour du compte"""
+  updatedAt: DateTime!
+}
+
+type Land {
+  id: ID!
+  title: String!
+  description: String!
+  location: String!
+  type: String!
+  status: String!
+  price: Float!
+  imageUrl: String
+  owner: AuthUser!
+  createdAt: DateTime!
+}
+
 type Query {
   validateUser(userId: String!): User!
+  lands(filters: FilterLandInput): [Land!]!
+  land(id: String!): Land!
+  myLands: [Land!]!
+}
+
+input FilterLandInput {
+  type: String
+  status: String
+  location: String
+  title: String
+  price: PriceRangeInput
+}
+
+input PriceRangeInput {
+  min: Float
+  max: Float
 }
 
 type Mutation {
@@ -100,6 +154,10 @@ type Mutation {
   verifyTwoFactorAuth(token: String!): Boolean!
   verifyTwoFactorLogin(token: String!): LoginResponse!
   create(input: CreateRoleDtoInput!): RoleType!
+  createLand(createLandInput: CreateLandInput!): Land!
+  updateLand(id: String!, updateLandInput: UpdateLandInput!): Land!
+  updateLandStatus(id: String!, status: String!): Land!
+  removeLand(id: String!): Land!
 }
 
 input UserInput {
@@ -158,4 +216,22 @@ input CreateRoleDtoInput {
 input PermissionInput {
   resource: Resource!
   actions: [Action!]!
+}
+
+input CreateLandInput {
+  title: String!
+  description: String!
+  location: String!
+  type: String!
+  price: Float!
+  imageUrl: String
+}
+
+input UpdateLandInput {
+  title: String
+  description: String
+  location: String
+  type: String
+  price: Float
+  imageUrl: String
 }
