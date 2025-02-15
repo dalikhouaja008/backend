@@ -85,6 +85,7 @@ export class AuthenticationResolver {
 
   //Partie 2FA
   // Mutation pour activer la 2FA
+  
   @UseGuards(AuthenticationGuard)
   @Mutation(() => String)
   async enableTwoFactorAuth(@Context() context) {
@@ -157,7 +158,7 @@ export class AuthenticationResolver {
   
 
   // Mutation pour valider le code OTP après la connexion
-  @UseGuards(AuthenticationGuard)
+  //@UseGuards(AuthenticationGuard)
   @Mutation(() => LoginResponse)
   async verifyTwoFactorLogin(
     @Context() context: any, 

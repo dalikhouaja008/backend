@@ -62,49 +62,67 @@ export class AuthenticationService {
 
   async login(credentials: LoginInput): Promise<LoginResponse> {
     const { email, password } = credentials;
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] 👤 Login attempt for email: ${email}`);
 
-    const user = await this.UserModel.findOne({ email });
-    if (!user) {
-      throw new UnauthorizedException('Wrong credentials');
+    try {
+        const user = await this.UserModel.findOne({ email });
+        if (!user) {
+            console.log(`[${timestamp}] ❌ Login failed: User not found for email: ${email}`);
+            throw new UnauthorizedException('Wrong credentials');
+        }
+
+        console.log(`[${timestamp}] 🔍 User found, verifying password for user: ${email}`);
+        const passwordMatch = await bcrypt.compare(password, user.password);
+        if (!passwordMatch) {
+            console.log(`[${timestamp}] ❌ Login failed: Invalid password for user: ${email}`);
+            throw new UnauthorizedException('Wrong credentials');
+        }
+
+        console.log(`[${timestamp}] ✅ Password verified for user: ${email}`);
+
+        // Si 2FA est activé
+        if (user.isTwoFactorEnabled) {
+            console.log(`[${timestamp}] 🔐 2FA required for user: ${email}`);
+            
+            // Générer un token temporaire pour la vérification 2FA
+            const tempToken = this.jwtService.sign(
+                { 
+                    userId: user._id,
+                    isTwoFactorAuthenticated: false,
+                    isTemp: true 
+                },
+                { expiresIn: '5m' }
+            );
+
+            console.log(`[${timestamp}] 🎟️  Temporary token generated for 2FA verification`);
+            return {
+                requiresTwoFactor: true,
+                tempToken,
+                user,
+                accessToken: null,
+                refreshToken: null
+            };
+        }
+
+        console.log(`[${timestamp}] 🔓 2FA not enabled, generating tokens`);
+        
+        // Si pas de 2FA, générer les tokens normaux
+        const tokens = await this.generateUserTokens(user._id, true);
+        console.log(`[${timestamp}] 🎉 Login successful for user: ${email}`);
+        
+        return {
+            requiresTwoFactor: false,
+            accessToken: tokens.accessToken,
+            refreshToken: tokens.refreshToken,
+            user,
+            tempToken: null
+        };
+    } catch (error) {
+        console.error(`[${timestamp}] ⚠️ Login error for ${email}:`, error.message);
+        throw error;
     }
-
-    const passwordMatch = await bcrypt.compare(password, user.password);
-    if (!passwordMatch) {
-      throw new UnauthorizedException('Wrong credentials');
-    }
-
-    // Si 2FA est activé
-    if (user.isTwoFactorEnabled) {
-      // Générer un token temporaire pour la vérification 2FA
-      const tempToken = this.jwtService.sign(
-        { 
-          userId: user._id,
-          isTwoFactorAuthenticated: false,
-          isTemp: true 
-        },
-        { expiresIn: '5m' } // Token temporaire valide 5 minutes
-      );
-
-      return {
-        requiresTwoFactor: true,
-        tempToken,
-        user,
-        accessToken: null,
-        refreshToken: null
-      };
-    }
-
-    // Si pas de 2FA, générer les tokens normaux
-    const tokens = await this.generateUserTokens(user._id, true);
-    return {
-      requiresTwoFactor: false,
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
-      user,
-      tempToken: null
-    };
-  }
-
+}
   async changePassword(userId, oldPassword: string, newPassword: string) {
     //Find the user
     const user = await this.UserModel.findById(userId);
