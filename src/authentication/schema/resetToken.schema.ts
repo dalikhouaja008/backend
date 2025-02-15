@@ -17,7 +17,7 @@ export class ResetToken extends Document {
   token: string;
 
   @Prop({ required: true })
-  @Field(() => Date, { description: 'La date d\'expiration du token' }) // Décorateur GraphQL
+  @Field(() => Date, { description: "La date d'expiration du token" }) // Décorateur GraphQL
   expiryDate: Date;
 
   @Prop({ required: true })
@@ -36,4 +36,3 @@ export class ResetToken extends Document {
 }
 
 export const ResetTokenSchema = SchemaFactory.createForClass(ResetToken);
-

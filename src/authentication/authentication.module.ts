@@ -18,7 +18,7 @@ import { TwoFactorAuthService } from './TwoFactorAuth.service';
 
 @Module({
   imports: [
-    PassportModule.register({ defaultStrategy: 'jwt' }), 
+    PassportModule.register({ defaultStrategy: 'jwt' }),
     PassportModule.register({ defaultStrategy: 'jwt' }), // Ajoutez cette ligne
     JwtModule.registerAsync({
       imports: [ConfigModule],
@@ -59,7 +59,21 @@ import { TwoFactorAuthService } from './TwoFactorAuth.service';
       },
     }),
   ],
-  providers: [ MailService,JwtStrategy, JwtAuthGuard, AuthenticationService,AuthenticationResolver,TwoFactorAuthService],
-  exports: [AuthenticationService,PassportModule,JwtModule, JwtStrategy, JwtAuthGuard,TwoFactorAuthService],
+  providers: [
+    MailService,
+    JwtStrategy,
+    JwtAuthGuard,
+    AuthenticationService,
+    AuthenticationResolver,
+    TwoFactorAuthService,
+  ],
+  exports: [
+    AuthenticationService,
+    PassportModule,
+    JwtModule,
+    JwtStrategy,
+    JwtAuthGuard,
+    TwoFactorAuthService,
+  ],
 })
 export class AuthenticationModule {}

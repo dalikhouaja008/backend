@@ -10,7 +10,7 @@ import { RoleSchema, RoleType } from './schemas/role.schema';
       { name: RoleType.name, schema: RoleSchema }, // Enregistre RoleTypeModel
     ]),
   ],
-  providers: [RolesService,RolesResolver],
+  providers: [RolesService, RolesResolver],
   exports: [RolesService],
 })
 export class RolesModule {}

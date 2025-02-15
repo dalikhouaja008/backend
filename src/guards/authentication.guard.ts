@@ -1,6 +1,5 @@
 import {
   Injectable,
-  CanActivate,
   ExecutionContext,
   UnauthorizedException,
   Logger,
@@ -53,8 +52,13 @@ export class AuthenticationGuard extends AuthGuard('jwt') {
       });
 
       // Vérifier si l'utilisateur nécessite une 2FA
-      if (payload.isTwoFactorAuthenticated === false && request.path !== '/verify-2fa') {
-        throw new UnauthorizedException('Authentification à deux facteurs requise');
+      if (
+        payload.isTwoFactorAuthenticated === false &&
+        request.path !== '/verify-2fa'
+      ) {
+        throw new UnauthorizedException(
+          'Authentification à deux facteurs requise',
+        );
       }
 
       request.user = payload;

@@ -32,10 +32,18 @@ export class AuthenticationService {
     private mailService: MailService,
     private rolesService: RolesService,
     private twoFactorAuthService: TwoFactorAuthService,
-  ) { }
+  ) {}
 
   async signup(signupData: UserInput) {
-    const { email, username, password, publicKey, twoFactorSecret, role, isVerified } = signupData;
+    const {
+      email,
+      username,
+      password,
+      publicKey,
+      twoFactorSecret,
+      role,
+      isVerified,
+    } = signupData;
 
     // Vérifier si l'email est déjà utilisé
     const emailInUse = await this.UserModel.findOne({ email });
@@ -77,12 +85,12 @@ export class AuthenticationService {
     if (user.isTwoFactorEnabled) {
       // Générer un token temporaire pour la vérification 2FA
       const tempToken = this.jwtService.sign(
-        { 
+        {
           userId: user._id,
           isTwoFactorAuthenticated: false,
-          isTemp: true 
+          isTemp: true,
         },
-        { expiresIn: '5m' } // Token temporaire valide 5 minutes
+        { expiresIn: '5m' }, // Token temporaire valide 5 minutes
       );
 
       return {
@@ -90,7 +98,7 @@ export class AuthenticationService {
         tempToken,
         user,
         accessToken: null,
-        refreshToken: null
+        refreshToken: null,
       };
     }
 
@@ -101,7 +109,7 @@ export class AuthenticationService {
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
       user,
-      tempToken: null
+      tempToken: null,
     };
   }
 
@@ -138,7 +146,7 @@ export class AuthenticationService {
         token: resetToken,
         userId: user._id,
         expiryDate,
-        email: email
+        email: email,
       });
       //Send the link to the user by email
       this.mailService.sendPasswordResetEmail(email, resetToken);
@@ -156,20 +164,23 @@ export class AuthenticationService {
     if (!token) {
       throw new UnauthorizedException('Refresh Token is invalid');
     }
-    return this.generateUserTokens(token.userId.toString(),false);
+    return this.generateUserTokens(token.userId.toString(), false);
   }
-  async generateUserTokens(userId: string | Types.ObjectId, isTwoFactorAuthenticated = false) {
+  async generateUserTokens(
+    userId: string | Types.ObjectId,
+    isTwoFactorAuthenticated = false,
+  ) {
     const user = await this.UserModel.findById(userId);
-    
+
     const payload = {
       userId: user._id,
       email: user.email,
       isTwoFactorAuthenticated,
     };
 
-    const accessToken = this.jwtService.sign(payload, { 
+    const accessToken = this.jwtService.sign(payload, {
       expiresIn: '10h',
-      secret: process.env.JWT_SECRET 
+      secret: process.env.JWT_SECRET,
     });
 
     const refreshToken = uuidv4();
@@ -204,7 +215,6 @@ export class AuthenticationService {
     return role.permissions;
   }
 
-
   async requestReset(email: string) {
     // 1. Trouver l'utilisateur
     const user = await this.UserModel.findOne({ email });
@@ -221,7 +231,7 @@ export class AuthenticationService {
     // Supprimer les anciens tokens non utilisés pour cet utilisateur
     await this.ResetTokenModel.deleteMany({
       userId: user._id,
-      used: false
+      used: false,
     });
 
     // Créer un nouveau token
@@ -230,7 +240,7 @@ export class AuthenticationService {
       token: token,
       expiryDate: expiryDate,
       email: email,
-      used: false
+      used: false,
     });
 
     await resetToken.save();
@@ -243,12 +253,12 @@ export class AuthenticationService {
       html: `
         <p>Votre code de réinitialisation est: <strong>${token}</strong></p>
         <p>Ce code expirera dans 15 minutes.</p>
-      `
+      `,
     });
 
     return {
       success: true,
-      message: 'Code de réinitialisation envoyé par email'
+      message: 'Code de réinitialisation envoyé par email',
     };
   }
 
@@ -257,7 +267,7 @@ export class AuthenticationService {
       email: email,
       token: code,
       used: false,
-      expiryDate: { $gt: new Date() }
+      expiryDate: { $gt: new Date() },
     });
 
     if (!resetToken) {
@@ -266,7 +276,7 @@ export class AuthenticationService {
 
     return {
       success: true,
-      message: 'Code vérifié avec succès'
+      message: 'Code vérifié avec succès',
     };
   }
 
@@ -275,7 +285,7 @@ export class AuthenticationService {
       email: email,
       token: code,
       used: false,
-      expiryDate: { $gt: new Date() }
+      expiryDate: { $gt: new Date() },
     });
 
     if (!resetToken) {
@@ -287,7 +297,7 @@ export class AuthenticationService {
 
     // Mettre à jour le mot de passe
     await this.UserModel.findByIdAndUpdate(resetToken.userId, {
-      password: hashedPassword
+      password: hashedPassword,
     });
     //chercher user
     const user = await this.UserModel.findOne({ email });
@@ -301,7 +311,7 @@ export class AuthenticationService {
     return {
       success: true,
       message: 'Mot de passe réinitialisé avec succès',
-      user: user
+      user: user,
     };
   }
 
@@ -317,27 +327,30 @@ export class AuthenticationService {
   }
 
   // Mettre à jour le secret 2FA d'un utilisateur
-  async updateUserTwoFactorSecret(userId: string, secret: string): Promise<User> {
+  async updateUserTwoFactorSecret(
+    userId: string,
+    secret: string,
+  ): Promise<User> {
     console.log('Updating 2FA secret for user:', userId, 'Secret:', secret);
-    
+
     try {
       const updatedUser = await this.UserModel.findByIdAndUpdate(
         userId,
-        { 
-          $set: { 
-            twoFactorSecret: secret 
-          }
+        {
+          $set: {
+            twoFactorSecret: secret,
+          },
         },
-        { 
+        {
           new: true,
-          runValidators: true
-        }
+          runValidators: true,
+        },
       ).exec();
-  
+
       if (!updatedUser) {
         throw new NotFoundException(`User with ID ${userId} not found`);
       }
-  
+
       console.log('Updated user:', updatedUser);
       return updatedUser;
     } catch (error) {
@@ -345,14 +358,14 @@ export class AuthenticationService {
       throw error;
     }
   }
-  // Activer la 2FA pour un utilisateur  
+  // Activer la 2FA pour un utilisateur
   async enableTwoFactorAuth(userId: string): Promise<User> {
     return this.UserModel.findByIdAndUpdate(
       userId,
       {
-        isTwoFactorEnabled: true
+        isTwoFactorEnabled: true,
       },
-      { new: true }
+      { new: true },
     ).exec();
   }
 
@@ -361,21 +374,23 @@ export class AuthenticationService {
       userId,
       {
         isTwoFactorEnabled: false,
-        twoFactorSecret: null
+        twoFactorSecret: null,
       },
-      { new: true }
+      { new: true },
     ).exec();
   }
 
   async verifyTwoFactorToken(userId: string, token: string) {
     const user = await this.UserModel.findById(userId);
     if (!user || !user.twoFactorSecret) {
-      throw new UnauthorizedException('Utilisateur non trouvé ou 2FA non activé');
+      throw new UnauthorizedException(
+        'Utilisateur non trouvé ou 2FA non activé',
+      );
     }
 
     const isValid = this.twoFactorAuthService.validateToken(
-      user.twoFactorSecret, 
-      token
+      user.twoFactorSecret,
+      token,
     );
 
     if (!isValid) {
@@ -385,17 +400,4 @@ export class AuthenticationService {
     // Générer un nouveau token avec 2FA validé
     return this.generateUserTokens(userId, true);
   }
-
 }
-
-
-
-
-
-
-
-
-
-
-
-

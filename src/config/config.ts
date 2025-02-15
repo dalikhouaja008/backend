@@ -1,6 +1,5 @@
 export default () => ({
-    database: {
-      connectionString: process.env.MONGO_URL,
-    },
-  });
-  
+  database: {
+    connectionString: process.env.MONGO_URL,
+  },
+});

@@ -17,7 +17,7 @@ export class RefreshToken extends Document {
   userId: mongoose.Types.ObjectId;
 
   @Prop({ required: true })
-  @Field(() => Date, { description: 'La date d\'expiration du token' }) // Décorateur GraphQL
+  @Field(() => Date, { description: "La date d'expiration du token" }) // Décorateur GraphQL
   expiryDate: Date;
 
   @Field(() => Date, { description: 'La date de création du token' }) // Décorateur GraphQL

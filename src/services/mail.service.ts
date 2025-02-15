@@ -5,7 +5,7 @@ import { Injectable, Logger } from '@nestjs/common';
 export class MailService {
   private transporter: nodemailer.Transporter;
   private readonly logger = new Logger(MailService.name);
-  
+
   constructor() {
     this.transporter = nodemailer.createTransport({
       host: 'smtp.ethereal.email',
@@ -18,13 +18,18 @@ export class MailService {
   }
 
   // Envoyer objet mailOptions
-  async sendMail(mailOptions: { to: string; subject: string; text: string; html: string }): Promise<void> {
+  async sendMail(mailOptions: {
+    to: string;
+    subject: string;
+    text: string;
+    html: string;
+  }): Promise<void> {
     try {
       await this.transporter.sendMail(mailOptions);
       console.log(`Email envoyé à ${mailOptions.to}`);
     } catch (error) {
-      console.error('Erreur lors de l\'envoi de l\'email:', error);
-      throw new Error('Impossible d\'envoyer l\'email');
+      console.error("Erreur lors de l'envoi de l'email:", error);
+      throw new Error("Impossible d'envoyer l'email");
     }
   }
 

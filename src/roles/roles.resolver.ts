@@ -5,12 +5,11 @@ import { CreateRoleDtoInput } from './dtos/role.dto';
 
 @Resolver('Roles')
 export class RolesResolver {
-
   constructor(private readonly rolesService: RolesService) {}
 
   // Simula una función que crea roles.
-  
-  @Mutation(() => RoleType)  // Spécifiez explicitement le type de retour
+
+  @Mutation(() => RoleType) // Spécifiez explicitement le type de retour
   async create(@Args('input') input: CreateRoleDtoInput): Promise<RoleType> {
     return this.rolesService.createRole(input);
   }

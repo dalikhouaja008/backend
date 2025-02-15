@@ -6,21 +6,20 @@ import { SchemaFactory } from '@nestjs/mongoose';
 // Define el tipo Permission como un ObjectType (para consultas)
 @ObjectType()
 export class PermissionType {
-    @Field(() => Resource)
-    resource: Resource;
+  @Field(() => Resource)
+  resource: Resource;
 
-    @Field(() => [Action])
-    actions: Action[];
+  @Field(() => [Action])
+  actions: Action[];
 }
 
 // Define el tipo Role como un ObjectType (para consultas)
 @ObjectType()
 export class RoleType {
-    @Field()
-    name: string;
+  @Field()
+  name: string;
 
-    @Field(() => [PermissionType])
-    permissions: PermissionType[];
+  @Field(() => [PermissionType])
+  permissions: PermissionType[];
 }
 export const RoleSchema = SchemaFactory.createForClass(RoleType);
-

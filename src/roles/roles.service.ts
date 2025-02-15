@@ -4,7 +4,6 @@ import { Model } from 'mongoose';
 import { CreateRoleDtoInput } from './dtos/role.dto';
 import { RoleType } from './schemas/role.schema';
 
-
 @Injectable()
 export class RolesService {
   constructor(@InjectModel(RoleType.name) private RoleModel: Model<RoleType>) {}
@@ -16,5 +15,4 @@ export class RolesService {
   async getRoleById(roleId: string) {
     return this.RoleModel.findById(roleId);
   }
-
 }

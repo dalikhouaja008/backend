@@ -1,4 +1,8 @@
-import { BadRequestException, Request, UnauthorizedException, UseGuards } from '@nestjs/common';
+import {
+  BadRequestException,
+  UnauthorizedException,
+  UseGuards,
+} from '@nestjs/common';
 import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { LoginInput } from './dto/login.input';
 import { RefreshTokenInput } from './dto/refreshToken.input';
@@ -17,7 +21,7 @@ export class AuthenticationResolver {
   constructor(
     private readonly authService: AuthenticationService,
     private readonly twoFactorAuthService: TwoFactorAuthService,
-  ) { }
+  ) {}
 
   // Mutation pour l'inscription (signup)
   @Mutation(() => User)
@@ -34,14 +38,18 @@ export class AuthenticationResolver {
   }
   // Mutation pour rafraîchir les tokens
   @Mutation(() => String)
-  async refreshTokens(@Args('refreshTokenData') refreshTokenData: RefreshTokenInput) {
+  async refreshTokens(
+    @Args('refreshTokenData') refreshTokenData: RefreshTokenInput,
+  ) {
     return this.authService.refreshTokens(refreshTokenData.refreshToken);
   }
 
   // Mutation pour changer le mot de passe
   @UseGuards(AuthenticationGuard) // Protéger cette mutation avec un guard d'authentification
   @Mutation(() => String)
-  async changePassword(@Args('changePasswordData') changePasswordData: ChangePasswordInput) {
+  async changePassword(
+    @Args('changePasswordData') changePasswordData: ChangePasswordInput,
+  ) {
     return this.authService.changePassword(
       changePasswordData.userId,
       changePasswordData.oldPassword,
@@ -51,7 +59,9 @@ export class AuthenticationResolver {
 
   // Mutation pour demander une réinitialisation de mot de passe
   @Mutation(() => String)
-  async forgotPassword(@Args('forgotPasswordData') forgotPasswordData: ForgotPasswordInput) {
+  async forgotPassword(
+    @Args('forgotPasswordData') forgotPasswordData: ForgotPasswordInput,
+  ) {
     return this.authService.forgotPassword(forgotPasswordData.email);
   }
 
@@ -69,7 +79,9 @@ export class AuthenticationResolver {
 
   // Mutation pour réinitialiser le mot de passe
   @Mutation(() => User)
-  async resetPassword(@Args('resetPasswordData') resetPasswordData: ResetPasswordInput) {
+  async resetPassword(
+    @Args('resetPasswordData') resetPasswordData: ResetPasswordInput,
+  ) {
     return this.authService.resetPassword(
       resetPasswordData.email,
       resetPasswordData.code,
@@ -77,7 +89,7 @@ export class AuthenticationResolver {
     );
   }
 
-  // Query pour valider un utilisateur 
+  // Query pour valider un utilisateur
   @Query(() => User)
   async validateUser(@Args('userId') userId: string) {
     return this.authService.validateUser(userId);
@@ -90,93 +102,104 @@ export class AuthenticationResolver {
   async enableTwoFactorAuth(@Context() context) {
     const req = context.req;
     const user = req.user;
-  
+
     console.log('User from context:', user); // Voyons la structure exacte
-  
+
     if (!user) {
       throw new UnauthorizedException('Utilisateur non authentifié');
     }
-  
+
     // L'ID peut être dans différentes propriétés selon votre implementation de AuthGuard
     const userId = user.id || user._id || user.userId;
     console.log('UserId extracted:', userId);
-  
+
     if (!userId) {
       throw new UnauthorizedException('ID utilisateur non trouvé');
     }
-  
+
     // Générer un secret 2FA
     const secret = this.twoFactorAuthService.generateSecret();
-  
+
     try {
       // Mettre à jour l'utilisateur avec le secret 2FA
-      const updatedUser = await this.authService.updateUserTwoFactorSecret(userId, secret.secret);
+      const updatedUser = await this.authService.updateUserTwoFactorSecret(
+        userId,
+        secret.secret,
+      );
       console.log('Updated user:', updatedUser);
-  
+
       // Générer un QR code pour l'utilisateur
-      const qrCodeUrl = await this.twoFactorAuthService.generateQRCode(secret.otpauthUrl);
+      const qrCodeUrl = await this.twoFactorAuthService.generateQRCode(
+        secret.otpauthUrl,
+      );
       return qrCodeUrl;
     } catch (error) {
       console.error('Error in enableTwoFactorAuth:', error);
-      throw new Error(`Erreur lors de l'activation de la 2FA: ${error.message}`);
+      throw new Error(
+        `Erreur lors de l'activation de la 2FA: ${error.message}`,
+      );
     }
   }
 
-  // Mutation pour valider le code OTP 
-  //activation initiale de la 2FA 
+  // Mutation pour valider le code OTP
+  //activation initiale de la 2FA
   @UseGuards(AuthenticationGuard)
   @Mutation(() => Boolean)
   async verifyTwoFactorAuth(
-    @Context() context: any, 
+    @Context() context: any,
     @Args('token') token: string,
   ): Promise<boolean> {
-    const req = context.req; 
+    const req = context.req;
     const userId = req.user.userId;
 
     const user = await this.authService.findUserById(userId);
-  
+
     if (!user) {
       throw new UnauthorizedException('Utilisateur non authentifié');
     }
-   //console.log(user);
-  
+    //console.log(user);
+
     if (!user.twoFactorSecret) {
       throw new Error('2FA non activée pour cet utilisateur');
     }
-  
+
     // Valider le code OTP
-    const isValid = this.twoFactorAuthService.validateToken(user.twoFactorSecret, token);
-  
+    const isValid = this.twoFactorAuthService.validateToken(
+      user.twoFactorSecret,
+      token,
+    );
+
     if (isValid) {
-          // Activer la 2FA pour l'utilisateur
-          await this.authService.enableTwoFactorAuth(userId);
-        }
-  
+      // Activer la 2FA pour l'utilisateur
+      await this.authService.enableTwoFactorAuth(userId);
+    }
+
     return isValid;
   }
-  
 
   // Mutation pour valider le code OTP après la connexion
   @UseGuards(AuthenticationGuard)
   @Mutation(() => LoginResponse)
   async verifyTwoFactorLogin(
-    @Context() context: any, 
+    @Context() context: any,
     @Args('token') token: string,
   ) {
     // Trouver l'utilisateur
-    const req = context.req; 
+    const req = context.req;
     const userId = req.user.userId;
 
     const user = await this.authService.findUserById(userId);
-  
+
     if (!user) {
       throw new UnauthorizedException('Utilisateur non authentifié');
     }
-   //console.log(user);
-  
+    //console.log(user);
 
     // Valider le code OTP
-    const isValid = this.twoFactorAuthService.validateToken(user.twoFactorSecret, token);
+    const isValid = this.twoFactorAuthService.validateToken(
+      user.twoFactorSecret,
+      token,
+    );
     if (!isValid) {
       throw new UnauthorizedException('Code OTP invalide');
     }
@@ -190,5 +213,4 @@ export class AuthenticationResolver {
       user: user,
     };
   }
-
 }

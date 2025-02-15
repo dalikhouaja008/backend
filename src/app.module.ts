@@ -7,11 +7,12 @@ import config from './config/config';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RolesModule } from './roles/roles.module';
 import { ScheduleModule } from '@nestjs/schedule';
-
+import { LandModule } from './land/land.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ //facilite l'utilisation des variables d'environnement
+    ConfigModule.forRoot({
+      //facilite l'utilisation des variables d'environnement
       isGlobal: true,
       cache: true,
       load: [config],
@@ -31,6 +32,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     AuthenticationModule,
     RolesModule,
     ScheduleModule.forRoot(),
+    LandModule,
   ],
 })
 export class AppModule {}

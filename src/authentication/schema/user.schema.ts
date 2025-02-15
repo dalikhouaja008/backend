@@ -1,6 +1,6 @@
 import { ObjectType, Field, ID } from '@nestjs/graphql';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document, SchemaTypes, Types } from 'mongoose';
+import { Document, Types } from 'mongoose';
 
 export enum UserRole {
   USER = 'user',
@@ -37,7 +37,8 @@ export class User {
 
   @Prop({ default: false })
   @Field(() => Boolean, {
-    description: "Indique si l'utilisateur a activé l'authentification à deux facteurs",
+    description:
+      "Indique si l'utilisateur a activé l'authentification à deux facteurs",
     defaultValue: false,
   })
   isTwoFactorEnabled: boolean;
