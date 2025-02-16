@@ -49,17 +49,31 @@ jobs:
     #   if: always()  # This ensures the step runs even if previous steps failed
     #   run: npm run test:cov
 
-    - name: Upload coverage reports
-      if: always()  # This ensures the step runs even if previous steps failed
-      uses: actions/upload-artifact@v4
-      with:
-        name: coverage-report
-        path: coverage/
-        retention-days: 7
+    # - name: Upload coverage reports
+    #   if: always()  # This ensures the step runs even if previous steps failed
+    #   uses: actions/upload-artifact@v4
+    #   with:
+    #     name: coverage-report
+    #     path: coverage/
+    #     retention-days: 7
 
-    - name: Check job status
-      if: always()  # This will always run
-      run: |
-        echo "Build status: ${{ steps.build.outcome }}"
-        echo "Test status: ${{ steps.test.outcome }}"
-        echo "E2E test status: ${{ steps.e2e.outcome }}"
+     # Docker Build and Push Steps
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_USERNAME }}
+        password: ${{ secrets.DOCKER_PASSWORD }}
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: |
+          ${{ secrets.DOCKER_USERNAME }}/backend:latest
+          ${{ secrets.DOCKER_USERNAME }}/backend:${{ github.sha }}
+        cache-from: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/backend:buildcache
+        cache-to: type=registry,ref=${{ secrets.DOCKER_USERNAME }}/backend:buildcache,mode=max
