@@ -9,7 +9,7 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { v4 as uuidv4 } from 'uuid';
 import { nanoid } from 'nanoid/non-secure';
-import { MailService } from 'src/services/mail.service';
+import { MailService } from '../services/mail.service';
 import { RolesService } from 'src/roles/roles.service';
 import { ResetToken } from './schema/resetToken.schema';
 import { RefreshToken } from './schema/refreshToken.schema';

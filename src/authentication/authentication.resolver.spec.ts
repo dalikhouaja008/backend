@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthenticationResolver } from './authentication.resolver';
 import { AuthenticationService } from './authentication.service';
-import { MailService } from '../services/mail.service';
+import { MailService } from '../services/mail.service'; 
 
 describe('AuthenticationResolver', () => {
   let resolver: AuthenticationResolver;
