@@ -5,10 +5,8 @@ on:
   push:
     branches: 
       - 'main/test_ci/feature/**'
-    paths-ignore:
-      - '**.md'
-      - 'docs/**'
-      - '.github/workflows/ci.yml'
+    paths:
+      - '.github/workflows/PR-Build.yml'
 
 jobs:
   all-tasks:
