@@ -5,8 +5,7 @@ on:
   push:
     branches: 
      - 'test_ci*'
-    paths:
-      - '.github/workflows/PR-Build.yml'
+
 
 jobs:
   all-tasks:
