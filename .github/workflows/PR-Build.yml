@@ -5,6 +5,11 @@ on:
   push:
     branches: 
      - 'test_ci-*'
+    paths-ignore:
+     - '**.md'
+     - 'docs/**'
+     - '.gitignore'
+     - 'LICENSE'
 
 
 jobs:
@@ -30,19 +35,38 @@ jobs:
 
     - name: Install dependencies
       run: npm ci
+    
+    # Determine changed files
+    - name: Get changed files
+      id: changed-files
+      uses: dorny/paths-filter@v2
+      with:
+        filters: |
+          src:
+            - 'src/**/*.ts'
+          test:
+            - 'test/**/*.ts'
+          e2e:
+            - 'test/**/*.e2e-spec.ts'
 
-    # Linting
+
+    # Linting - Always run on changed files
     - name: Run ESLint
       run: npm run lint
       
-    # Testing
+     # Unit Tests - Run only if src or test files changed
     - name: Run unit tests
-      run: npm run test
+      if: steps.changed-files.outputs.src == 'true' || steps.changed-files.outputs.test == 'true'
+      run: npm run test -- --findRelatedTests $(git diff --name-only origin/main)
       
+    # E2E Tests - Run only if relevant files changed
     - name: Run e2e tests
+      if: steps.changed-files.outputs.e2e == 'true' || steps.changed-files.outputs.src == 'true'
       run: npm run test:e2e
 
+        # Coverage - Generate only if tests were run
     - name: Generate test coverage
+      if: steps.changed-files.outputs.src == 'true' || steps.changed-files.outputs.test == 'true'
       run: npm run test:cov
 
     - name: Upload coverage reports
