@@ -1,6 +1,6 @@
 module.exports = {
     moduleFileExtensions: ['js', 'json', 'ts'],
-    rootDir: '.',  // Changed from 'src' to '.' to handle all project files
+    rootDir: '.',
     testRegex: '.*\\.spec\\.ts$',
     transform: {
       '^.+\\.(t|j)s$': 'ts-jest'

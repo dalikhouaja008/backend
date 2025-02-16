@@ -55,9 +55,8 @@ jobs:
       run: npm run lint
       
      # Unit Tests - Run only if src or test files changed
-    - name: Run unit tests
-      if: steps.changed-files.outputs.src == 'true' || steps.changed-files.outputs.test == 'true'
-      run: npm run test -- --findRelatedTests $(git diff --name-only origin/main)
+     - name: Unit Tests
+       run: npm run test -- --findRelatedTests $(git diff --name-only origin/main)
       
     # E2E Tests - Run only if relevant files changed
     - name: Run e2e tests
