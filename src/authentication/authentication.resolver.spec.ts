@@ -13,12 +13,12 @@ describe('AuthenticationResolver', () => {
     resetPassword: jest.fn(),
   };
 
-  // Mock complet pour MailService
+  // Correction du mock MailService en supprimant les paramètres non utilisés
   const mockMailService = {
-    sendMail: jest.fn().mockImplementation(async (mailOptions) => {
+    sendMail: jest.fn().mockImplementation(async () => {
       return Promise.resolve();
     }),
-    sendPasswordResetEmail: jest.fn().mockImplementation(async (to, token) => {
+    sendPasswordResetEmail: jest.fn().mockImplementation(async () => {
       return Promise.resolve();
     }),
   };
@@ -45,7 +45,6 @@ describe('AuthenticationResolver', () => {
     expect(resolver).toBeDefined();
   });
 
-  // Test pour la mutation de réinitialisation de mot de passe
   describe('initiatePasswordReset', () => {
     it('should call authService.initiatePasswordReset', async () => {
       const email = 'test@example.com';

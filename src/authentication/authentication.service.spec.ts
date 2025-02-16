@@ -11,14 +11,12 @@ import { RefreshToken } from './schema/refreshToken.schema';
 describe('AuthenticationService', () => {
   let service: AuthenticationService;
 
-  // Mock pour MailService avec les méthodes existantes
+  // Mock pour MailService avec les paramètres utilisés
   const mockMailService = {
-    sendMail: jest.fn().mockImplementation(async (mailOptions) => {
-      console.log('Mock: Sending mail to', mailOptions.to);
+    sendMail: jest.fn().mockImplementation(async () => {
       return Promise.resolve();
     }),
-    sendPasswordResetEmail: jest.fn().mockImplementation(async (to, token) => {
-      console.log('Mock: Sending password reset to', to);
+    sendPasswordResetEmail: jest.fn().mockImplementation(async () => {
       return Promise.resolve();
     }),
   };
@@ -88,14 +86,12 @@ describe('AuthenticationService', () => {
     expect(service).toBeDefined();
   });
 
-  // Test pour la réinitialisation du mot de passe
   describe('password reset', () => {
-    it('should call sendPasswordResetEmail with correct parameters', async () => {
+    it('should call sendPasswordResetEmail', async () => {
       const email = 'test@example.com';
-      const token = 'test-token';
 
       mockUserModel.findOne.mockResolvedValueOnce({ email });
-      mockResetTokenModel.create.mockResolvedValueOnce({ token });
+      mockResetTokenModel.create.mockResolvedValueOnce({ });
 
       await service.requestReset(email);
 
