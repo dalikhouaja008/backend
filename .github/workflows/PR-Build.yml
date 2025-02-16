@@ -11,7 +11,6 @@ on:
      - '.gitignore'
      - 'LICENSE'
 
-
 jobs:
   all-tasks:
     name: Build, Test, and Lint
@@ -49,21 +48,20 @@ jobs:
           e2e:
             - 'test/**/*.e2e-spec.ts'
 
-
     # Linting - Always run on changed files
     - name: Run ESLint
       run: npm run lint
       
-     # Unit Tests - Run only if src or test files changed
-     - name: Unit Tests
-       run: npm run test -- --findRelatedTests $(git diff --name-only origin/main)
+    # Unit Tests - Run only if src or test files changed
+    - name: Unit Tests
+      run: npm run test -- --findRelatedTests $(git diff --name-only origin/main)
       
     # E2E Tests - Run only if relevant files changed
     - name: Run e2e tests
       if: steps.changed-files.outputs.e2e == 'true' || steps.changed-files.outputs.src == 'true'
       run: npm run test:e2e
 
-        # Coverage - Generate only if tests were run
+    # Coverage - Generate only if tests were run
     - name: Generate test coverage
       if: steps.changed-files.outputs.src == 'true' || steps.changed-files.outputs.test == 'true'
       run: npm run test:cov
