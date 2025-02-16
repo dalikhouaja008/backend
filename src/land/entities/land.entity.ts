@@ -1,6 +1,5 @@
 import { ObjectType, Field, ID, Float } from '@nestjs/graphql';
-import { LandStatus, LandType } from '../schema/land.schema';
-import { User } from '../../authentication/entities/user.entity';
+import { LandType, LandStatus } from '../schema/land.types';
 
 @ObjectType()
 export class Land {
@@ -16,10 +15,10 @@ export class Land {
   @Field()
   location: string;
 
-  @Field(() => String)
+  @Field(() => LandType)
   type: LandType;
 
-  @Field(() => String)
+  @Field(() => LandStatus)
   status: LandStatus;
 
   @Field(() => Float)
@@ -28,9 +27,6 @@ export class Land {
   @Field({ nullable: true })
   imageUrl?: string;
 
-  @Field(() => User)
-  owner: User;
-
-  @Field()
+  @Field(() => Date)
   createdAt: Date;
 }

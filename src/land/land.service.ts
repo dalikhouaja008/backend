@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Land, LandStatus, LandType } from './schema/land.schema';
+import { Land, LandStatus, LandType } from './schema/land.types';
 import { CreateLandInput } from './dto/create-land.input';
 import { UpdateLandInput } from './dto/update-land.input';
 

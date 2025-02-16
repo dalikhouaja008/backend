@@ -1,12 +1,12 @@
-import { Field, InputType, Float } from '@nestjs/graphql';
+import { InputType, Field, Float } from '@nestjs/graphql';
 import {
-  IsEnum,
   IsNotEmpty,
   IsNumber,
-  IsOptional,
   IsString,
+  IsEnum,
+  IsOptional,
 } from 'class-validator';
-import { LandType } from '../schema/land.schema';
+import { LandType } from '../schema/land.types';
 
 @InputType()
 export class CreateLandInput {
@@ -25,7 +25,7 @@ export class CreateLandInput {
   @IsString()
   location: string;
 
-  @Field(() => String)
+  @Field(() => LandType)
   @IsNotEmpty()
   @IsEnum(LandType)
   type: LandType;

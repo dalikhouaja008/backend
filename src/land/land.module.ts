@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { Land, LandSchema } from './schema/land.schema';
+import { Land, LandSchema } from './schema/land.types';
 import { LandService } from './land.service';
 import { LandResolver } from './land.resolver';
 import { AuthenticationModule } from '../authentication/authentication.module';

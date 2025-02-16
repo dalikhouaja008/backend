@@ -1,6 +1,6 @@
 import { Field, InputType, Float } from '@nestjs/graphql';
 import { IsEnum, IsOptional, IsString, IsNumber } from 'class-validator';
-import { LandType, LandStatus } from '../schema/land.schema';
+import { LandType, LandStatus } from '../schema/land.types';
 
 @InputType()
 export class PriceRangeInput {
@@ -17,12 +17,12 @@ export class PriceRangeInput {
 
 @InputType()
 export class FilterLandInput {
-  @Field(() => String, { nullable: true })
+  @Field(() => LandType, { nullable: true })
   @IsOptional()
   @IsEnum(LandType)
   type?: LandType;
 
-  @Field(() => String, { nullable: true })
+  @Field(() => LandStatus, { nullable: true })
   @IsOptional()
   @IsEnum(LandStatus)
   status?: LandStatus;

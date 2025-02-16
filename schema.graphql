@@ -113,12 +113,24 @@ type Land {
   title: String!
   description: String!
   location: String!
-  type: String!
-  status: String!
+  type: LandType!
+  status: LandStatus!
   price: Float!
   imageUrl: String
-  owner: AuthUser!
   createdAt: DateTime!
+}
+
+"""Type of land property"""
+enum LandType {
+  AGRICULTURAL
+  URBAN
+}
+
+"""Status of land listing"""
+enum LandStatus {
+  PENDING
+  APPROVED
+  REJECTED
 }
 
 type Query {
@@ -129,8 +141,8 @@ type Query {
 }
 
 input FilterLandInput {
-  type: String
-  status: String
+  type: LandType
+  status: LandStatus
   location: String
   title: String
   price: PriceRangeInput
@@ -222,7 +234,7 @@ input CreateLandInput {
   title: String!
   description: String!
   location: String!
-  type: String!
+  type: LandType!
   price: Float!
   imageUrl: String
 }
@@ -231,7 +243,7 @@ input UpdateLandInput {
   title: String
   description: String
   location: String
-  type: String
+  type: LandType
   price: Float
   imageUrl: String
 }

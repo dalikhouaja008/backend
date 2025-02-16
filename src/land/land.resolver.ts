@@ -5,7 +5,7 @@ import { Land } from './entities/land.entity';
 import { CreateLandInput } from './dto/create-land.input';
 import { UpdateLandInput } from './dto/update-land.input';
 import { JwtAuthGuard } from '../guards/jwtAuth.guards';
-import { LandStatus } from './schema/land.schema';
+import { LandStatus } from './schema/land.types';
 import { FilterLandInput } from './dto/filter-land.input';
 
 @Resolver(() => Land)
