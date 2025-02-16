@@ -1,0 +1,61 @@
+name: Backend CI
+
+on:
+  workflow_dispatch: 
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [20.x]
+        mongodb-version: ['7.0']
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+
+    - name: Start MongoDB
+      uses: supercharge/mongodb-github-action@1.10.0
+      with:
+        mongodb-version: ${{ matrix.mongodb-version }}
+
+    - name: Install dependencies
+      run: npm ci
+      
+    - name: Build
+      if: always()  # This ensures the step runs even if previous steps failed
+      run: npm run build
+
+    - name: Run unit tests
+      if: always()  # This ensures the step runs even if previous steps failed
+      run: npm run test
+
+    - name: Run e2e tests
+      if: always()  # This ensures the step runs even if previous steps failed
+      run: npm run test:e2e
+
+    - name: Generate test coverage
+      if: always()  # This ensures the step runs even if previous steps failed
+      run: npm run test:cov
+
+    - name: Upload coverage reports
+      if: always()  # This ensures the step runs even if previous steps failed
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: coverage/
+        retention-days: 7
+
+    - name: Check job status
+      if: always()  # This will always run
+      run: |
+        echo "Build status: ${{ steps.build.outcome }}"
+        echo "Test status: ${{ steps.test.outcome }}"
+        echo "E2E test status: ${{ steps.e2e.outcome }}"
