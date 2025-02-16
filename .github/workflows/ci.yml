@@ -74,5 +74,5 @@ jobs:
         push: true
         tags: |
           ${{ secrets.DOCKER_USERNAME }}/theboost:latest
-          ${{ secrets.DOCKER_USERNAME }}/theboost:${{ github.sha }}
+          ${{ secrets.DOCKER_USERNAME }}/theboost:1.0.0.0
        
