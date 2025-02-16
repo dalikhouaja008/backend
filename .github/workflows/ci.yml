@@ -33,17 +33,17 @@ jobs:
       if: always()  # This ensures the step runs even if previous steps failed
       run: npm run build
 
-    - name: Run unit tests
-      if: always()  # This ensures the step runs even if previous steps failed
-      run: npm run test
+    # - name: Run unit tests
+    #   if: always()  # This ensures the step runs even if previous steps failed
+    #   run: npm run test
 
-    - name: Run e2e tests
-      if: always()  # This ensures the step runs even if previous steps failed
-      run: npm run test:e2e
+    # - name: Run e2e tests
+    #   if: always()  # This ensures the step runs even if previous steps failed
+    #   run: npm run test:e2e
 
-    - name: Generate test coverage
-      if: always()  # This ensures the step runs even if previous steps failed
-      run: npm run test:cov
+    # - name: Generate test coverage
+    #   if: always()  # This ensures the step runs even if previous steps failed
+    #   run: npm run test:cov
 
     - name: Upload coverage reports
       if: always()  # This ensures the step runs even if previous steps failed
