@@ -11,12 +11,14 @@ import { AuthenticationGuard } from 'src/guards/authentication.guard';
 import { User } from './schema/user.schema';
 import { LoginResponse } from './responses/login.response';
 import { TwoFactorAuthService } from './TwoFactorAuth.service';
+import { JwtService } from '@nestjs/jwt';
 
 @Resolver(() => User)
 export class AuthenticationResolver {
   constructor(
     private readonly authService: AuthenticationService,
     private readonly twoFactorAuthService: TwoFactorAuthService,
+    private readonly jwtService: JwtService,
   ) { }
 
   // Mutation pour l'inscription (signup)
@@ -156,38 +158,111 @@ export class AuthenticationResolver {
   
 
   // Mutation pour valider le code OTP après la connexion
-  @UseGuards(AuthenticationGuard)
+  //@UseGuards(AuthenticationGuard)
   @Mutation(() => LoginResponse)
-  async verifyTwoFactorLogin(
-    @Context() context: any, 
-    @Args('token') token: string,
-  ) {
-    // Trouver l'utilisateur
-    const req = context.req; 
-    const userId = req.user.userId;
+async verifyTwoFactorLogin(
+  @Context() context: any, 
+  @Args('token') token: string,
+) {
+  const timestamp = '2025-02-17 11:29:37';
+  const currentUser = 'raednas';
 
-    const user = await this.authService.findUserById(userId);
-  
-    if (!user) {
-      throw new UnauthorizedException('Utilisateur non authentifié');
+  try {
+    console.log(`[${timestamp}] AuthResolver: 🔐 Verifying 2FA login`,
+                '\n└─ User:', currentUser,
+                '\n└─ Token length:', token.length);
+
+    // Extraire le token des headers
+    const authHeader = context.req.headers.authorization;
+    if (!authHeader) {
+      console.error(`[${timestamp}] AuthResolver: ❌ No authorization header`,
+                   '\n└─ User:', currentUser);
+      throw new UnauthorizedException('Token manquant');
     }
-   //console.log(user);
-  
+
+    const tempToken = authHeader.replace('Bearer ', '');
+
+    // Décoder le token temporaire
+    let decodedToken;
+    try {
+      decodedToken = this.jwtService.verify(tempToken);
+      console.log(`[${timestamp}] AuthResolver: ✅ Temp token decoded`,
+                 '\n└─ User:', currentUser,
+                 '\n└─ UserId:', decodedToken.userId,
+                 '\n└─ IsTemp:', decodedToken.isTemp);
+    } catch (error) {
+      console.error(`[${timestamp}] AuthResolver: ❌ Invalid token`,
+                   '\n└─ User:', currentUser,
+                   '\n└─ Error:', error.message);
+      throw new UnauthorizedException('Token invalide');
+    }
+
+    // Vérifier que c'est un token temporaire
+    if (!decodedToken.isTemp) {
+      console.error(`[${timestamp}] AuthResolver: ❌ Not a temporary token`,
+                   '\n└─ User:', currentUser);
+      throw new UnauthorizedException('Token non valide pour la vérification 2FA');
+    }
+
+    // Trouver l'utilisateur avec l'ID du token
+    const user = await this.authService.findUserById(decodedToken.userId);
+    if (!user) {
+      console.error(`[${timestamp}] AuthResolver: ❌ User not found`,
+                   '\n└─ User:', currentUser,
+                   '\n└─ UserId:', decodedToken.userId);
+      throw new UnauthorizedException('Utilisateur non trouvé');
+    }
+
+    console.log(`[${timestamp}] AuthResolver: 👤 User found`,
+                '\n└─ User:', currentUser,
+                '\n└─ Email:', user.email,
+                '\n└─ Has 2FA:', user.isTwoFactorEnabled);
+
+    // Vérifier que 2FA est activé
+    if (!user.isTwoFactorEnabled) {
+      console.error(`[${timestamp}] AuthResolver: ❌ 2FA not enabled`,
+                   '\n└─ User:', currentUser,
+                   '\n└─ Email:', user.email);
+      throw new UnauthorizedException('2FA non activé pour cet utilisateur');
+    }
 
     // Valider le code OTP
-    const isValid = this.twoFactorAuthService.validateToken(user.twoFactorSecret, token);
+    const isValid = this.twoFactorAuthService.validateToken(
+      user.twoFactorSecret, 
+      token
+    );
+
     if (!isValid) {
+      console.error(`[${timestamp}] AuthResolver: ❌ Invalid OTP`,
+                   '\n└─ User:', currentUser,
+                   '\n└─ Email:', user.email);
       throw new UnauthorizedException('Code OTP invalide');
     }
 
+    console.log(`[${timestamp}] AuthResolver: ✅ OTP verified`,
+                '\n└─ User:', currentUser,
+                '\n└─ Email:', user.email);
+
     // Générer les tokens JWT
     const tokens = await this.authService.generateUserTokens(user._id);
+
+    console.log(`[${timestamp}] AuthResolver: 🎟️ Tokens generated`,
+                '\n└─ User:', currentUser,
+                '\n└─ Email:', user.email);
 
     return {
       accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
       user: user,
+      requiresTwoFactor: false,
+      tempToken: null
     };
-  }
 
+  } catch (error) {
+    console.error(`[${timestamp}] AuthResolver: ❌ Verification failed`,
+                 '\n└─ User:', currentUser,
+                 '\n└─ Error:', error.message);
+    throw error;
+  }
+}
 }

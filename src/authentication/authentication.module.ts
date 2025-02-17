@@ -12,7 +12,6 @@ import { RefreshToken, RefreshTokenSchema } from './schema/refreshToken.schema';
 import { ResetToken, ResetTokenSchema } from './schema/resetToken.schema';
 import { MailService } from 'src/services/mail.service';
 import { JwtStrategy } from './jwt.strategy';
-import { JwtAuthGuard } from 'src/guards/jwtAuth.guards';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { TwoFactorAuthService } from './TwoFactorAuth.service';
 
@@ -59,7 +58,7 @@ import { TwoFactorAuthService } from './TwoFactorAuth.service';
       },
     }),
   ],
-  providers: [ MailService,JwtStrategy, JwtAuthGuard, AuthenticationService,AuthenticationResolver,TwoFactorAuthService],
-  exports: [AuthenticationService,PassportModule,JwtModule, JwtStrategy, JwtAuthGuard,TwoFactorAuthService],
+  providers: [ MailService,JwtStrategy, AuthenticationService,AuthenticationResolver,TwoFactorAuthService],
+  exports: [AuthenticationService,PassportModule,JwtModule, JwtStrategy,TwoFactorAuthService],
 })
 export class AuthenticationModule {}
