@@ -83,8 +83,21 @@ type LoginResponse {
   user: User
 }
 
+type Land {
+  _id: ID!
+  name: String!
+  location: String!
+  photos: [String!]
+  documents: [String!]
+  size: Int!
+  owner: User!
+  createdAt: DateTime!
+}
+
 type Query {
   validateUser(userId: String!): User!
+  getAllLands: [Land!]!
+  getLand(id: String!): Land!
 }
 
 type Mutation {
@@ -98,7 +111,9 @@ type Mutation {
   resetPassword(resetPasswordData: ResetPasswordInput!): User!
   enableTwoFactorAuth: String!
   verifyTwoFactorAuth(token: String!): Boolean!
+  verifyTwoFactorLogin(token: String!): LoginResponse!
   create(input: CreateRoleDtoInput!): RoleType!
+  createLand(createLandInput: CreateLandInput!): Land!
 }
 
 input UserInput {
@@ -157,4 +172,12 @@ input CreateRoleDtoInput {
 input PermissionInput {
   resource: Resource!
   actions: [Action!]!
+}
+
+input CreateLandInput {
+  name: String!
+  location: String!
+  photos: [String!]
+  documents: [String!]
+  size: Int!
 }

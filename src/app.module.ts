@@ -7,19 +7,21 @@ import config from './config/config';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { RolesModule } from './roles/roles.module';
 import { ScheduleModule } from '@nestjs/schedule';
+import { LandModule } from './land/land.module';
 
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ //facilite l'utilisation des variables d'environnement
+    ConfigModule.forRoot({
       isGlobal: true,
       cache: true,
       load: [config],
     }),
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
-      autoSchemaFile: 'schema.graphql', // Sauvegarde le schéma dans un fichier
-      context: ({ req }) => ({ req }), // Ajoutez cette ligne pour inclure la requête dans le contexte
+      autoSchemaFile: 'schema.graphql',
+      context: ({ req }) => ({ req }),
+      
     }),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],
@@ -31,6 +33,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     AuthenticationModule,
     RolesModule,
     ScheduleModule.forRoot(),
+    LandModule,
   ],
 })
 export class AppModule {}
