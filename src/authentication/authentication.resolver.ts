@@ -3,7 +3,6 @@ import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { LoginInput } from './dto/login.input';
 import { RefreshTokenInput } from './dto/refreshToken.input';
 import { ChangePasswordInput } from './dto/changePassword.input';
-import { ForgotPasswordInput } from './dto/forgetPassword.input';
 import { ResetPasswordInput } from './dto/resetPassword.input';
 import { AuthenticationService } from './authentication.service';
 
@@ -20,6 +19,8 @@ export class AuthenticationResolver {
     private readonly twoFactorAuthService: TwoFactorAuthService,
 
   ) { }
+  
+
 
   // Mutation pour l'inscription (signup)
   @Mutation(() => User)
@@ -58,9 +59,14 @@ export class AuthenticationResolver {
 
   @Mutation(() => String)
   async forgotPassword(@Args('email') email: string): Promise<string> {
-    await this.authService.forgotPassword(email);
-    return 'Password reset email sent';
+    try {
+      await this.authService.forgotPassword(email);
+      return 'Password reset email sent';
+    } catch (error) {
+      throw new Error(error.message); // ✅ Throw GraphQL error if user not found
+    }
   }
+  
 
 
   // Mutation pour demander un code de réinitialisation

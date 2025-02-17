@@ -157,31 +157,25 @@ export class AuthenticationService {
 
     if (!user) {
         this.logger.warn(`User with ${isEmail ? 'email' : 'phone number'} ${identifier} not found`);
-        return;
+        throw new Error('User not found');  // ✅ Throw error here
     }
 
     const expiryDate = new Date();
-expiryDate.setMinutes(expiryDate.getMinutes() + 15); // Extend to 15 minutes
+    expiryDate.setMinutes(expiryDate.getMinutes() + 15); 
 
-
-    // Generate the correct token
     let resetToken: string;
-
     if (isEmail) {
-        // For email resets, use a long secure token
         resetToken = nanoid(64);
     } else {
-        // For SMS resets, use a 6-digit numeric OTP
         resetToken = generateOtp();
     }
 
-    // Save the correct token in the database
     await this.ResetTokenModel.create({
         token: resetToken,
         userId: user._id,
         expiryDate,
         email: user.email,
-        phoneNumber: identifier, // Add phoneNumber here
+        phoneNumber: identifier,
     });
 
     if (isEmail) {
@@ -194,8 +188,6 @@ expiryDate.setMinutes(expiryDate.getMinutes() + 15); // Extend to 15 minutes
 
     this.logger.log(`Password reset code sent to ${identifier}`);
 }
-
-
 
 
   async resetPasswordWithToken(token: string, newPassword: string): Promise<User> {
