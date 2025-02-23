@@ -18,7 +18,7 @@ export class TwoFactorAuthService {
     try {
       return await QRCode.toDataURL(otpauthUrl);
     } catch (error) {
-      console.error(error); // Log the error to avoid the ESLint issue
+      throw new Error('Erreur lors de la génération du QR code');
     }
   }
 
@@ -28,7 +28,7 @@ export class TwoFactorAuthService {
       secret,
       encoding: 'base32',
       token,
-      window: 1, // Permet une tolérance d'une période (30 secondes)
+      window: 1 // Permet une tolérance d'une période (30 secondes)
     });
   }
 }

@@ -1,8 +1,4 @@
-import {
-  BadRequestException,
-  UnauthorizedException,
-  UseGuards,
-} from '@nestjs/common';
+import { BadRequestException, Request, UnauthorizedException, UseGuards } from '@nestjs/common';
 import { Args, Context, Mutation, Query, Resolver } from '@nestjs/graphql';
 import { LoginInput } from './dto/login.input';
 import { RefreshTokenInput } from './dto/refreshToken.input';
@@ -135,9 +131,7 @@ export class AuthenticationResolver {
       return qrCodeUrl;
     } catch (error) {
       console.error('Error in enableTwoFactorAuth:', error);
-      throw new Error(
-        `Erreur lors de l'activation de la 2FA: ${error.message}`,
-      );
+      throw new Error(`Erreur lors de l'activation de la 2FA: ${error.message}`);
     }
   }
 
